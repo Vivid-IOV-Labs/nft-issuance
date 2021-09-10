@@ -17,7 +17,7 @@ module.exports.models = {
   * connections (see `config/connections.js`)                                *
   *                                                                          *
   ***************************************************************************/
-  datastores: 'localDiskDb',
+  // connections: 'default',
 
   /***************************************************************************
   *                                                                          *
@@ -27,12 +27,14 @@ module.exports.models = {
   * See http://sailsjs.org/#!/documentation/concepts/ORM/model-settings.html  *
   *                                                                          *
   ***************************************************************************/
-  migrate: 'alter',
+  migrate: 'safe',
 
   attributes: {
-    id: { type: 'string', columnName: '_id', required: true },
+    id: { type: 'string', columnName: '_id' },
     createdAt: { type: 'number', autoCreatedAt: true },
     updatedAt: { type: 'number', autoUpdatedAt: true }
   }
+
+
 
 };

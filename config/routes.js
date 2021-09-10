@@ -32,9 +32,9 @@ module.exports.routes = {
   *                                                                          *
   ***************************************************************************/
 
-  '/': {
-    view: 'homepage'
-  },
+  // '/': {
+  //   view: 'homepage'
+  // },
 
   /***************************************************************************
   *                                                                          *
@@ -47,11 +47,25 @@ module.exports.routes = {
   ***************************************************************************/
 
 
-  'POST /create': { controller: "NftController", action: "create", skipAssets: true },
-  'POST /approve': { controller: "NftController", action: "approve", skipAssets: true },
-  'POST /issue': { controller: "NftController", action: "issue", skipAssets: true },
-  'POST /claim': { controller: "NftController", action: "claim", skipAssets: true },
-  'POST /deliver': { controller: "NftController", action: "deliver", skipAssets: true }
+  // 'POST /create': { controller: "NftController", action: "create", skipAssets: true },
+  // 'POST /approve': { controller: "NftController", action: "approve", skipAssets: true },
+  // 'POST /issue': { controller: "NftController", action: "issue", skipAssets: true },
+  // 'POST /claim': { controller: "NftController", action: "claim", skipAssets: true },
+  'POST /deliver': { controller: "NftController", action: "deliver", skipAssets: true },
+
+  'GET /nft': { controller: "NftController", action: "find", skipAssets: true },
+  // 'GET /nft/:id': { controller: "NftController", action: "findOne", skipAssets: true },
+  'POST /nft': { controller: "NftController", action: "create", skipAssets: true },
+  // 'PUT /nft': { controller: "NftController", action: "update", skipAssets: true },
+  // 'DELETE /nft': { controller: "NftController", action: "delete", skipAssets: true },
+
+  'POST /nft/approve': { controller: "NftController", action: "approve", skipAssets: true },
+  'POST /nft/issue': { controller: "NftController", action: "issue", skipAssets: true },
+  'POST /nft/claim': { controller: "NftController", action: "claim", skipAssets: true },
+
+
+
+
 
 
 

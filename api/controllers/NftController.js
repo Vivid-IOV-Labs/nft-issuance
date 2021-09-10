@@ -74,7 +74,7 @@ let txList = [{
     "SetFlag": 4
 }, {
     "TransactionType": "TrustSet",
-    "Account": "rFriendToReceiveNFT...",
+    //"Account": "rFriendToReceiveNFT...",
     "Flags": 131072,
     "LimitAmount": {
         "currency": CURRENCY,
@@ -181,14 +181,14 @@ const createTrustReceiverAndIssuer = async (_o) => {
 }
 
 
-const issueNFToken = async (_o) => {
+const issueNFToken = async (_o, _p) => {
     //Issue NFToken send to brand wallet
 
     const txInfo = await _getAccountInfoAndFee(_o.X_ISSUER_WALLET_ADDRESS);
     const xaccount = await _getXAccount(_o.X_ISSUER_SEED);
 
     txList[2].Sequence = txInfo.accountInfo.account_data.Sequence;
-    txList[2].Destination = _o.X_BRAND_WALLET_ADDRESS;
+    txList[2].Destination = _p.X_BRAND_WALLET_ADDRESS;
     txList[2].Fee = txInfo.feeValue;//fee;
 
     const txObj = await _signTx({ tx: txList[2], xaccount: xaccount });
@@ -269,7 +269,7 @@ const sendNFTokenToUser = async (_o) => {
 
 }
 
-const accountset = async (_o) => {
+const accountSet = async (_o) => {
     //Account setup
 
     const txInfo = await _getAccountInfoAndFee(_o.X_ISSUER_WALLET_ADDRESS);
@@ -286,55 +286,351 @@ const accountset = async (_o) => {
 
 }
 
+const issueAndBlackhole = async (_o, _p) => {
+
+    const arr = [];
+
+    arr.push(await issueNFToken(_o, _p));
+
+    seqCount++;
+    arr.push(await blackholeSetRegKey(_o));
+
+    seqCount++;
+    arr.push(await blackholeDisableMasterKey(_o));
+    seqCount = 0;
+
+    return arr;
+
+}
+
+const create = async (_o) => {
+    //Done by a brand worker
+
+    const accountSetResponse = await accountSet(_o);
+
+    return accountSetResponse;
+
+}
+
+const approve = async (_o) => {
+    //Done by a brand manager
+
+    const createdTrustReceiverAndIssuer = await createTrustReceiverAndIssuer(_o);
+
+    return createdTrustReceiverAndIssuer;
+
+}
+
+const issue = async (_o, _p) => {
+    //Done by a peerkat admin worker
+
+    const issueAndBlackholeResponse = await issueAndBlackhole(_o, _p)
+
+    return issueAndBlackholeResponse;
+
+}
+
+const claim = async (_o) => {
+    //Done by a public user (via xumm app)
+
+    const createdTrustUserAndIssuer = await createTrustUserAndIssuer(_o);
+
+    return createdTrustUserAndIssuer;
+
+}
+
+const deliver = async (_o) => {
+    //Done by an peerkat admin user or done automatically 
+
+    const sendNFTokenToUserResponse = await sendNFTokenToUser(_o);
+
+    return sendNFTokenToUserResponse;
+
+}
+
+
+var db = sails.getDatastore().manager;
+var ObjectId = require('mongodb').ObjectId;
+
+const txIsSuccess = (v) => v.engine_result === "tesSUCCESS";
+const txIsAccepted = (v) => v.accepted === true;
+const hasDbID = (v) => typeof v.id != "undefined";
+
+const { XummSdk } = require('xumm-sdk')
+const Sdk = new XummSdk((process.env.XUMM_API_KEY).toString(), (process.env.XUMM_API_SECRET).toString())
+
+
 module.exports = {
 
     create: async function (req, res) {
 
-        const ans = await accountset({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED });
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
 
-        return _requestRes(ans, res)
+        var request = req.allParams();
 
+        const created = await create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
+
+        if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
+
+            const status_options = await sails.models.statusoptions.findOne({ name: "created" });
+
+            const nft = await sails.models.nftform.create({ "details": request, "current_status": status_options.name }).fetch();
+
+            const nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+
+            const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": created }).fetch();
+
+            if (xrpl_tx.id) {
+                res_obj.success = true
+                res_obj.message = "NFT created successfully"
+                res_obj.data = { nft, xrpl_tx }
+            }
+        }
+
+        return _requestRes(res_obj, res)
 
     },
 
     approve: async function (req, res) {
 
-        const ans = await createTrustReceiverAndIssuer({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS });
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
 
-        return _requestRes(ans, res)
+        let request = req.allParams();
+
+        const approved = await approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS });
+
+        if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
+
+            const status_options = await sails.models.statusoptions.findOne({ name: "approved" });
+
+            const nft = await sails.models.nftform.findOne({ "id": request.id });
+
+            if (!nft) {
+                res_obj.success = false;
+                res_obj.message = "NFT does not exist";
+
+                return res.badRequest(res_obj);
+            }
+
+            const objectId = new ObjectId(request.id)
+
+            const nftUpdated = await db.collection('nftform').findOneAndUpdate(
+                { _id: objectId },
+                {
+                    $set: {
+                        "current_status": status_options.name,
+                        "previous_status": nft.current_status
+                    }
+                },
+                { returnOriginal: false }
+            );
+
+            const nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+
+            const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": approved }).fetch();
+
+            if (xrpl_tx.id) {
+                res_obj.success = true
+                res_obj.message = "NFT approved successfully"
+                res_obj.data = { nft: nftUpdated.value, xrpl_tx }
+            }
+
+        } else {
+
+            res_obj.success = false;
+            res_obj.message = "Ripple Ledger 'TrustSet' transaction between 'Issuer' wallet and 'Brand' wallet failed";
+
+            return res.badRequest(res_obj);
+
+
+        }
+
+        return _requestRes(res_obj, res)
 
     },
 
     issue: async function (req, res) {
 
-        const arr = [];
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
 
-        arr.push(await issueNFToken({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, X_BRAND_WALLET_ADDRESS }));
+        let request = req.allParams();
 
-        seqCount++;
-        arr.push(await blackholeSetRegKey({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED }));
+        const issued = await issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED }, { X_BRAND_WALLET_ADDRESS })
 
-        seqCount++;
-        arr.push(await blackholeDisableMasterKey({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED }));
-        seqCount = 0;
+        //If the XRPL transactions where an array of transactions 
+        if (Array.isArray(issued)) {
+            let isSuccess = issued.every(txIsSuccess);
+            let isAccepted = issued.every(txIsAccepted);
 
-        return res.ok(arr)
+            console.log('isSuccess', isSuccess)
+            console.log('isAccepted', isAccepted)
+
+            if (isSuccess && isAccepted) {
+
+                const status_options = await sails.models.statusoptions.findOne({ name: "issued" });
+
+                const nft = await sails.models.nftform.findOne({ "id": request.id });
+
+                if (!nft) {
+                    res_obj.success = false;
+                    res_obj.message = "NFT does not exist";
+
+                    return res.badRequest(res_obj);
+                }
+
+                const objectId = new ObjectId(request.id)
+
+                const nftUpdated = await db.collection('nftform').findOneAndUpdate(
+                    { _id: objectId },
+                    {
+                        $set: {
+                            "current_status": status_options.name,
+                            "previous_status": nft.current_status
+                        }
+                    },
+                    { returnOriginal: false }
+                );
+
+                const nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+
+                //As the XRPL transactions are an array, we should loop through each transaction result to record in the database.
+                if (Array.isArray(issued)) {
+
+                    const xrpl_tx_arr = [];
+
+                    issued.forEach((item) => {
+
+                        xrpl_tx_arr.push({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": item });
+
+                    })
+
+                    const xrpl_tx = await sails.models.xrpltransactions.createEach(xrpl_tx_arr).fetch();
+
+                    let allEntriesHaveID = xrpl_tx.every(hasDbID);
+
+                    console.log(allEntriesHaveID);
+
+                    if (allEntriesHaveID) {
+                        res_obj.success = true
+                        res_obj.message = "NFT issued successfully"
+                        res_obj.data = { nft: nftUpdated.value, xrpl_tx }
+
+                    }
+
+                    return res.ok(res_obj)
+
+                }
+
+            } else {
+
+                res_obj.success = false;
+                res_obj.message = "Ripple Ledger 'Payment' transaction to send NFT from 'Issuer' wallet to 'Brand' wallet failed";
+
+                return res.badRequest(res_obj);
+
+            }
+
+        }
 
     },
 
     claim: async function (req, res) {
 
-        const ans = await createTrustUserAndIssuer({ X_USER_WALLET_ADDRESS, X_USER_SEED, });
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
 
-        return _requestRes(ans, res)
+        //This is supposed to be done by the public users in the Xumm App.
+        let request = req.allParams();
+
+        //Prepare transaction payload for xumm users to sign.
+        //----------------------------------------------------------------------------------------------------
+        const payload = await Sdk.payload.create(txList[5], true)
+
+        const nft = await sails.models.nftform.findOne({ "id": request.id });
+
+        const xumm_api_payload = await sails.models.xumm.create({ "nft": nft.id, "details": payload }).fetch();
+        //----------------------------------------------------------------------------------------------------
+
+        // const claimed = await claim({ X_USER_WALLET_ADDRESS, X_USER_SEED });
+
+        //Could update a locked status attribute on the NFT Form ; so that when a user is claiming, no one else can claim.
+
+        res_obj.success = true
+        res_obj.message = "NFT claim payload generated successfully."
+        res_obj.data = { nft, xumm_api_payload }
+
+
+        return _requestRes(res_obj, res)
 
     },
 
     deliver: async function (req, res) {
 
-        const ans = await sendNFTokenToUser({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS });
+        const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS });
 
-        return _requestRes(ans, res)
+        return _requestRes(delivered, res)
+
+    },
+
+    find: async function (req, res) {
+
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
+
+        var request = req.allParams();
+
+        let allNFT = null;
+        let totalNFT = 0;
+        var associationOptions = {
+            where: {}
+        }
+        var NFTOptions = {
+            where: {}
+        }
+
+        let sortBy = request.sortBy || 'createdAt'
+        let order = request.order || 'asc'
+        let pageSize = request.pageSize || 10
+        let page = request.page || 1
+
+
+        allNFT = await sails.models.nftform.find()
+            .where(NFTOptions.where)
+            .populate('xumm', associationOptions)
+            .sort(`${sortBy} ${order}`)
+            .skip((page - 1) * pageSize)
+            .limit(pageSize)
+            .meta({ enableExperimentalDeepTargets: true })
+
+        totalNFT = await sails.models.nftform.count()
+            .where(NFTOptions.where)
+            .meta({ enableExperimentalDeepTargets: true })
+
+
+        res_obj.success = true
+        res_obj.message = "List of NFTs"
+        res_obj.data = { allNFT, totalNFT }
+
+
+        return _requestRes(res_obj, res)
 
     }
 

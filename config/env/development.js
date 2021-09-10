@@ -19,7 +19,8 @@ module.exports = {
 
   datastores: {
     default: {
-      adapter: 'sails-disk'
+      adapter: 'sails-mongo',
+      url: 'mongodb://@127.0.0.1:27016/test'
     }
   }
 
