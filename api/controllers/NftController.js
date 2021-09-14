@@ -581,7 +581,10 @@ module.exports = {
 
     deliver: async function (req, res) {
 
-        const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS });
+
+        let request = req.allParams();
+
+        const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS: request.userWallet });
 
         return _requestRes(delivered, res)
 
