@@ -356,7 +356,7 @@ const txIsSuccess = (v) => v.engine_result === "tesSUCCESS";
 const txIsAccepted = (v) => v.accepted === true;
 const hasDbID = (v) => typeof v.id != "undefined";
 
-const { XummSdk } = require('xumm-sdk')
+const { XummSdk } = require('xumm-sdk');
 const Sdk = new XummSdk((process.env.XUMM_API_KEY).toString(), (process.env.XUMM_API_SECRET).toString())
 
 
@@ -373,7 +373,7 @@ module.exports = {
         var request = req.allParams();
 
         const created = await create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
-
+        console.log(created.engine_result)
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
 
             const status_options = await sails.models.statusoptions.findOne({ name: "created" });
@@ -555,18 +555,15 @@ module.exports = {
         };
 
         //This is supposed to be done by the public users in the Xumm App.
-        let request = req.allParams();
 
-        //Prepare transaction payload for xumm users to sign.
-        //----------------------------------------------------------------------------------------------------
-        const payload = await Sdk.payload.create(txList[5], true)
-
-        const nft = await sails.models.nftform.findOne({ "id": request.id });
-
-        const xumm_api_payload = await sails.models.xumm.create({ "nft": nft.id, "details": payload }).fetch();
-        //----------------------------------------------------------------------------------------------------
-
+        
         // const claimed = await claim({ X_USER_WALLET_ADDRESS, X_USER_SEED });
+        
+        //Prepare transaction payload for xumm users to sign and listen.
+        const claimCreatedDetails = await claimNFTService.listen(txList[5], req.body.id)
+
+        const nft = await sails.models.nftform.findOne({ "id": req.body.id });
+        const xumm_api_payload = await sails.models.xumm.create({ "nft": nft.id, "details": claimCreatedDetails }).fetch();        
 
         //Could update a locked status attribute on the NFT Form ; so that when a user is claiming, no one else can claim.
 
@@ -580,10 +577,24 @@ module.exports = {
     },
 
     deliver: async function (req, res) {
+      
+      // // We dont need to call deliver function here, add to claim
+      //   const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS }); //Get X_USER_WALLET_ADDRESS from XUMM event
+      //   // Once delivered update sails.models.statusoptions current_status, previous_status
+      //   return _requestRes(delivered, res)
 
-        const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS });
 
-        return _requestRes(delivered, res)
+      // const WebSocket = require('ws');
+      // const wss = 'wss://xumm.app/sign/b500ac67-d731-4a08-8e14-c91e0efc56f7'
+      // const ws = new WebSocket(wss);
+
+      // // ws.on('expires_in_seconds', (messageAsString) => {
+      // //   console.log(messageAsString)
+      // // })
+      // ws.on('expires_in_seconds', function incoming(message) {
+      //   console.log('received: %s', message);
+      // });
+      
 
     },
 

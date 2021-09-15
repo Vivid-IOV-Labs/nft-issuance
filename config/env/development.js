@@ -9,6 +9,8 @@
  * any private information to this file!
  *
  */
+ 
+require('dotenv').config();
 
 module.exports = {
 
@@ -20,7 +22,7 @@ module.exports = {
   datastores: {
     default: {
       adapter: 'sails-mongo',
-      url: 'mongodb://@127.0.0.1:27016/test'
+      url: process.env.DB_URI
     }
   }
 
