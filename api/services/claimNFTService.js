@@ -26,10 +26,10 @@ module.exports = {
         })
       }
       if (event.data.signed === true) {
-        sails.log.debug(`NFT has been delivered. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
-        sails.sockets.blast('delivered', {
+        sails.log.debug(`NFT has been signed. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
+        sails.sockets.blast('signed', {
           nftId: nftId
-        })    
+        })
       }
       if (event.data.signed === false) {
         sails.log.debug(`NFT has been rejected. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)

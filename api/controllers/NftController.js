@@ -559,6 +559,8 @@ module.exports = {
         
         // const claimed = await claim({ X_USER_WALLET_ADDRESS, X_USER_SEED });
         
+        // Update nftForm table 'claiming_in_process' = true. If it's true decline 
+
         //Prepare transaction payload for xumm users to sign and listen.
         const claimCreatedDetails = await claimNFTService.listen(txList[5], req.body.id)
 
@@ -579,7 +581,7 @@ module.exports = {
     deliver: async function (req, res) {
       
       // // We dont need to call deliver function here, add to claim
-      //   const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS }); //Get X_USER_WALLET_ADDRESS from XUMM event
+      // const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS }); //Get X_USER_WALLET_ADDRESS from XUMM event
       //   // Once delivered update sails.models.statusoptions current_status, previous_status
       //   return _requestRes(delivered, res)
 
