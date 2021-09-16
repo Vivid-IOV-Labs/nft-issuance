@@ -578,25 +578,14 @@ module.exports = {
 
     },
 
-    deliver: async function (req, res) {
+    deliver: async function (req, res) {  
+      let request = req.allParams();
       
       // // We dont need to call deliver function here, add to claim
-      // const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS }); //Get X_USER_WALLET_ADDRESS from XUMM event
-      //   // Once delivered update sails.models.statusoptions current_status, previous_status
-      //   return _requestRes(delivered, res)
+      const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS: request.userWallet }); //Get X_USER_WALLET_ADDRESS from XUMM event
+      // Once delivered update sails.models.statusoptions current_status, previous_status
 
-
-      // const WebSocket = require('ws');
-      // const wss = 'wss://xumm.app/sign/b500ac67-d731-4a08-8e14-c91e0efc56f7'
-      // const ws = new WebSocket(wss);
-
-      // // ws.on('expires_in_seconds', (messageAsString) => {
-      // //   console.log(messageAsString)
-      // // })
-      // ws.on('expires_in_seconds', function incoming(message) {
-      //   console.log('received: %s', message);
-      // });
-      
+        return _requestRes(delivered, res)
 
     },
 

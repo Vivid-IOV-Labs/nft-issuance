@@ -51,7 +51,7 @@ module.exports.routes = {
   // 'POST /approve': { controller: "NftController", action: "approve", skipAssets: true },
   // 'POST /issue': { controller: "NftController", action: "issue", skipAssets: true },
   // 'POST /claim': { controller: "NftController", action: "claim", skipAssets: true },
-  'POST /deliver': { controller: "NftController", action: "deliver", skipAssets: true },
+  // 'POST /deliver': { controller: "NftController", action: "deliver", skipAssets: true },
 
   'GET /nft': { controller: "NftController", action: "find", skipAssets: true },
   // 'GET /nft/:id': { controller: "NftController", action: "findOne", skipAssets: true },
@@ -62,6 +62,7 @@ module.exports.routes = {
   'POST /nft/approve': { controller: "NftController", action: "approve", skipAssets: true },
   'POST /nft/issue': { controller: "NftController", action: "issue", skipAssets: true },
   'POST /nft/claim': { controller: "NftController", action: "claim", skipAssets: true },
+  'POST /nft/deliver': { controller: "NftController", action: "deliver", skipAssets: true },
 
 
 
