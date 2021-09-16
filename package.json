@@ -15,16 +15,18 @@
     "sails-hook-orm": "^2.1.1",
     "sails-hook-sockets": "^2.0.0",
     "sails-mongo": "1.2.0",
+    "ws": "^8.2.2",
     "xrpl-accountlib": "^1.1.4",
     "xrpl-client": "^1.5.0",
     "xumm-sdk": "^0.6.0"
   },
   "devDependencies": {
-    "eslint": "5.16.0"
+    "eslint": "5.16.0",
+    "nodemon": "^2.0.12"
   },
   "scripts": {
     "start": "NODE_ENV=production node app.js",
-    "start:dev": "node app.js",
+    "start:dev": "nodemon node app.js",
     "test": "npm run lint && npm run custom-tests && echo 'Done.'",
     "lint": "./node_modules/eslint/bin/eslint.js . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
     "custom-tests": "echo \"(No other custom tests yet.)\" && echo"
