@@ -569,6 +569,7 @@ module.exports = {
 
         //Could update a locked status attribute on the NFT Form ; so that when a user is claiming, no one else can claim.
 
+        // TODO: Update 'xumm_api_status' with true
         res_obj.success = true
         res_obj.message = "NFT claim payload generated successfully."
         res_obj.data = { nft, xumm_api_payload }

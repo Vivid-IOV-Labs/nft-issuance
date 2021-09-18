@@ -16,7 +16,7 @@ module.exports = {
 
     previous_status: { type: 'string' },
     current_status: { type: 'string' },
-
+    locked: { type: 'boolean', defaultsTo: false},
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
