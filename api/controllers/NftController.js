@@ -403,44 +403,25 @@ module.exports = {
             data: {}
         };
 
-        let request = req.allParams();
-
         const approved = await approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS });
 
         if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
-
-            const status_options = await sails.models.statusoptions.findOne({ name: "approved" });
-
-            const nft = await sails.models.nftform.findOne({ "id": request.id });
-
-            if (!nft) {
+            const updateNftStatusResponse = await NFTFormService.updateStatus('approved', req.body.id)
+            if (!updateNftStatusResponse.success) {
                 res_obj.success = false;
                 res_obj.message = "NFT does not exist";
 
                 return res.badRequest(res_obj);
             }
-
-            const objectId = new ObjectId(request.id)
-
-            const nftUpdated = await db.collection('nftform').findOneAndUpdate(
-                { _id: objectId },
-                {
-                    $set: {
-                        "current_status": status_options.name,
-                        "previous_status": nft.current_status
-                    }
-                },
-                { returnOriginal: false }
-            );
-
-            const nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+            const nft_form_status = updateNftStatusResponse.nft_form_status
+            const nft = updateNftStatusResponse.nft
 
             const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": approved }).fetch();
 
             if (xrpl_tx.id) {
                 res_obj.success = true
                 res_obj.message = "NFT approved successfully"
-                res_obj.data = { nft: nftUpdated.value, xrpl_tx }
+                res_obj.data = { nft: nft.value, xrpl_tx }
             }
 
         } else {
@@ -478,32 +459,15 @@ module.exports = {
             console.log('isAccepted', isAccepted)
 
             if (isSuccess && isAccepted) {
-
-                const status_options = await sails.models.statusoptions.findOne({ name: "issued" });
-
-                const nft = await sails.models.nftform.findOne({ "id": request.id });
-
-                if (!nft) {
+                const updateNftStatusResponse = await NFTFormService.updateStatus('issued', req.body.id)
+                if (!updateNftStatusResponse.success) {
                     res_obj.success = false;
                     res_obj.message = "NFT does not exist";
 
                     return res.badRequest(res_obj);
                 }
-
-                const objectId = new ObjectId(request.id)
-
-                const nftUpdated = await db.collection('nftform').findOneAndUpdate(
-                    { _id: objectId },
-                    {
-                        $set: {
-                            "current_status": status_options.name,
-                            "previous_status": nft.current_status
-                        }
-                    },
-                    { returnOriginal: false }
-                );
-
-                const nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+                const nft_form_status = updateNftStatusResponse.nft_form_status
+                const nft = updateNftStatusResponse.nft
 
                 //As the XRPL transactions are an array, we should loop through each transaction result to record in the database.
                 if (Array.isArray(issued)) {
@@ -525,7 +489,7 @@ module.exports = {
                     if (allEntriesHaveID) {
                         res_obj.success = true
                         res_obj.message = "NFT issued successfully"
-                        res_obj.data = { nft: nftUpdated.value, xrpl_tx }
+                        res_obj.data = { nft: nft.value, xrpl_tx }
 
                     }
 
@@ -554,37 +518,61 @@ module.exports = {
             data: {}
         };
 
-        //This is supposed to be done by the public users in the Xumm App.
-
-        
-        // const claimed = await claim({ X_USER_WALLET_ADDRESS, X_USER_SEED });
-        
-        // Update nftForm table 'claiming_in_process' = true. If it's true decline 
+        //This is supposed to be done by the public users in the Xumm App.        
 
         //Prepare transaction payload for xumm users to sign and listen.
         const claimCreatedDetails = await claimNFTService.listen(txList[5], req.body.id)
 
         const nft = await sails.models.nftform.findOne({ "id": req.body.id });
-        const xumm_api_payload = await sails.models.xumm.create({ "nft": nft.id, "details": claimCreatedDetails }).fetch();        
+        const newXummRecord = {
+            "nft": nft.id,
+            "xumm_api_status": true, // TODO: What should the price be? Boolean?
+            "details": claimCreatedDetails
+        }
+        const xumm_api_payload = await sails.models.xumm.create(newXummRecord).fetch();
 
-        //Could update a locked status attribute on the NFT Form ; so that when a user is claiming, no one else can claim.
+        if (!xumm_api_payload) {
+            let message = `Could not claim NFT. nft.id: ${nft.id}`
+            sails.log.error(message)
+            res_obj.success = false
+            res_obj.message = message
+
+            return _requestRes(res_obj, res)
+        }
+
+        await NFTFormService.updateStatus('claimed', req.body.id)
+        if (!updateNftStatusResponse.success) {
+            res_obj.success = false;
+            res_obj.message = "NFT does not exist";
+
+            return res.badRequest(res_obj);
+        }
+
 
         res_obj.success = true
         res_obj.message = "NFT claim payload generated successfully."
         res_obj.data = { nft, xumm_api_payload }
 
-
         return _requestRes(res_obj, res)
-
     },
 
-    deliver: async function (req, res) {  
-      let request = req.allParams();
-      
-      // // We dont need to call deliver function here, add to claim
-      const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS: request.userWallet }); //Get X_USER_WALLET_ADDRESS from XUMM event
-      // Once delivered update sails.models.statusoptions current_status, previous_status
+    deliver: async function (req, res) {
 
+        // // We dont need to call deliver function here, add to claim
+        const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS: req.body.userWallet }); //Get X_USER_WALLET_ADDRESS from XUMM event
+
+        NFTFormService.updateStatus('delivered', req.body.id)
+        if (!updateNftStatusResponse.success) {
+            res_obj.success = false;
+            res_obj.message = "NFT does not exist";
+
+            return res.badRequest(res_obj);
+        }
+
+        sails.sockets.blast('delivered', {
+            nftId: req.body.id
+          })
+  
         return _requestRes(delivered, res)
 
     },
@@ -639,4 +627,3 @@ module.exports = {
 
 
 };
-
