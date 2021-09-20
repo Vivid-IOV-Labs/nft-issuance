@@ -30,6 +30,8 @@ module.exports = {
                 })
             }
             if (event.data.signed === true) {
+                // TODO: Call nft/deliver endpoint. Create a service so nft/endpoint can call it too.
+                
                 sails.log.debug(`NFT has been signed. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
                 sails.sockets.blast('signed', {
                     nftId: nftId
