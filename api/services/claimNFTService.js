@@ -12,38 +12,45 @@ module.exports = {
         var payloadEventId = ''
         _lockNft(nftId)
 
-        const subscription = await Sdk.payload.createAndSubscribe(request, event => {
+        const subscription = await Sdk.payload.createAndSubscribe(request, async (event) => {
             if (typeof event.data.message !== 'undefined') {
                 payloadEventId = event.data.message.split(' ')[1]
             }
             if (event.data.expires_in_seconds === 0) {
-                sails.log.debug(`NFT has expired. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
+                const payloadStatus = 'expired'
+                _updateXummRecord(nftId, event.data, payloadStatus)
                 _unlockNft(nftId)
-                sails.sockets.blast('expired', {
+                sails.log.debug(`NFT has ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
+                sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })
             }
             if (event.data.opened === true) {
-                sails.log.debug(`QR code has been scanned. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
-                sails.sockets.blast('scanned', {
+                const payloadStatus = 'scanned'
+                _updateXummRecord(nftId, event.data, payloadStatus)
+                sails.log.debug(`QR code has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
+                sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })
             }
             if (event.data.signed === true) {
-                sails.log.debug(`NFT has been signed. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
-                sails.sockets.blast('signed', {
+                const payloadStatus = 'signed'
+                sails.log.debug(`NFT has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
+                _updateXummRecord(nftId, event.data, payloadStatus)
+                sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })
             }
             if (event.data.signed === false) {
-                sails.log.debug(`NFT has been rejected. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
+                const payloadStatus = 'rejected'
+                sails.log.debug(`NFT has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
+                _updateXummRecord(nftId, event.data, payloadStatus)
                 _unlockNft(nftId)
-                sails.sockets.blast('rejected', {
+                sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })
             }
         })
-
         return subscription.created
     },
 };
@@ -92,3 +99,25 @@ _unlockNft = async (nftId) => {
     }
 }
 
+_updateXummRecord = async (nftId, event, payloadStatus) => {
+    var db = sails.getDatastore().manager;
+    const objectId = new ObjectId(nftId)
+
+    const payload = event.payload_uuidv4 ? await Sdk.payload.get(event.payload_uuidv4) : {}
+    // console.log(payload.response.account)
+
+    const xummUpdateRecord = {
+        $set: {
+            "payload": payload,
+            "payloadStatus": payloadStatus
+        }
+    }
+
+    var xummUpdated = await db.collection('xumm').findOneAndUpdate(
+        { nft: objectId }, xummUpdateRecord, { returnOriginal: false }
+    );
+
+    if (!xummUpdated.lastErrorObject.updatedExisting) {
+        sails.log.error(`Could not udpate xumm. nftId: ${nftId}`);
+    }
+}
