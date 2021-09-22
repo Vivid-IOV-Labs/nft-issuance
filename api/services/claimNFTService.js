@@ -36,10 +36,13 @@ module.exports = {
             if (event.data.signed === true) {
                 const payloadStatus = 'signed'
                 sails.log.debug(`NFT has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
-                _updateXummRecord(nftId, event.data, payloadStatus)
+                await _updateXummRecord(nftId, event.data, payloadStatus)
                 sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })
+
+                await deliverNFTService.run(nftId)
+                _updateXummRecord(nftId, event.data, 'delivered')
             }
             if (event.data.signed === false) {
                 const payloadStatus = 'rejected'
@@ -104,7 +107,6 @@ _updateXummRecord = async (nftId, event, payloadStatus) => {
     const objectId = new ObjectId(nftId)
 
     const payload = event.payload_uuidv4 ? await Sdk.payload.get(event.payload_uuidv4) : {}
-    // console.log(payload.response.account)
 
     const xummUpdateRecord = {
         $set: {
