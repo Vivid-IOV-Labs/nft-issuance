@@ -558,6 +558,14 @@ module.exports = {
 
     deliver: async function (req, res) {
 
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
+        
+        await deliverNFTService.deliver(req.body.id, req.body.userWallet)
+
         // // We dont need to call deliver function here, add to claim
         const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS: req.body.userWallet }); //Get X_USER_WALLET_ADDRESS from XUMM event
 
