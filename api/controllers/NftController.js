@@ -662,6 +662,8 @@ module.exports = {
 
         allNFT = await sails.models.nftform.find()
             .where(NFTOptions.where)
+            .populate('status', associationOptions)
+            .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
             .sort(`${sortBy} ${order}`)
             .skip((page - 1) * pageSize)
