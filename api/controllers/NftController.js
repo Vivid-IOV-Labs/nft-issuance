@@ -14,8 +14,9 @@ const X_ISSUER_SEED = (process.env.X_ISSUER_SEED).toString();
 const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
 const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
 
-const X_USER_WALLET_ADDRESS = (process.env.X_USER_WALLET_ADDRESS).toString();
-const X_USER_SEED = (process.env.X_USER_SEED).toString();
+// Not needed anymore, we get it from XUMM response payload
+// const X_USER_WALLET_ADDRESS = (process.env.X_USER_WALLET_ADDRESS).toString();
+// const X_USER_SEED = (process.env.X_USER_SEED).toString();
 
 let seqCount = 0;
 
@@ -169,6 +170,8 @@ const createTrustReceiverAndIssuer = async (_o) => {
     txList[1].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[1].Fee = txInfo.feeValue;
     txList[1].Account = _o.X_BRAND_WALLET_ADDRESS;
+    const nft = await sails.models.nftform.findOne({ "id": _o.nftId })
+    txList[1].Currency = textToHex({ text: nft.details.token_name });
 
     const xaccount = await _getXAccount(_o.X_BRAND_SEED);
 
@@ -370,7 +373,12 @@ module.exports = {
             data: {}
         };
 
-        var request = req.allParams();
+        if (req.body.token_name.length > 40) {
+            res_obj.success = false;
+            res_obj.message = "token_name should have less than 40 characters";
+
+            return res.badRequest(res_obj);
+        }
 
         const created = await create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
         console.log(created.engine_result)
@@ -378,16 +386,22 @@ module.exports = {
 
             const status_options = await sails.models.statusoptions.findOne({ name: "created" });
 
-            const nft = await sails.models.nftform.create({ "details": request, "current_status": status_options.name }).fetch();
+            const nft = await sails.models.nftform.create({ "details": req.body, "current_status": status_options.name }).fetch();
 
             const nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
 
             const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": created }).fetch();
 
+            // TODO: Add else case if (!xrpl_tx.id) and return error. Repeat in all endpoints
             if (xrpl_tx.id) {
+                const nftPopulated = await sails.models.nftform.findOne({ "id": nft.id })
+                    .populate('status')
+                    .populate('xrpl_tx')
+                    .populate('xumm');
+
                 res_obj.success = true
                 res_obj.message = "NFT created successfully"
-                res_obj.data = { nft, xrpl_tx }
+                res_obj.data = { nft: nftPopulated }
             }
         }
 
@@ -403,7 +417,8 @@ module.exports = {
             data: {}
         };
 
-        const approved = await approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS });
+        const nftId = req.body.id
+        const approved = await approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, nftId });
 
         if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
             const updateNftStatusResponse = await NFTFormService.updateStatus('approved', req.body.id)
@@ -418,10 +433,16 @@ module.exports = {
 
             const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": approved }).fetch();
 
+
             if (xrpl_tx.id) {
+                const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
+                    .populate('status')
+                    .populate('xrpl_tx')
+                    .populate('xumm');
+
                 res_obj.success = true
                 res_obj.message = "NFT approved successfully"
-                res_obj.data = { nft: nft.value, xrpl_tx }
+                res_obj.data = { nft: nftPopulated }
             }
 
         } else {
@@ -484,12 +505,17 @@ module.exports = {
 
                     let allEntriesHaveID = xrpl_tx.every(hasDbID);
 
-                    console.log(allEntriesHaveID);
 
                     if (allEntriesHaveID) {
+                        const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
+                            .populate('status')
+                            .populate('xrpl_tx')
+                            .populate('xumm');
+
                         res_obj.success = true
                         res_obj.message = "NFT issued successfully"
-                        res_obj.data = { nft: nft.value, xrpl_tx }
+                        res_obj.data = { nft: nftPopulated }
+
 
                     }
 
@@ -526,7 +552,6 @@ module.exports = {
         const nft = await sails.models.nftform.findOne({ "id": req.body.id });
         const newXummRecord = {
             "nft": nft.id,
-            "xumm_api_status": true, // TODO: What should the price be? Boolean?
             "details": claimCreatedDetails
         }
         const xumm_api_payload = await sails.models.xumm.create(newXummRecord).fetch();
@@ -540,7 +565,7 @@ module.exports = {
             return _requestRes(res_obj, res)
         }
 
-        await NFTFormService.updateStatus('claimed', req.body.id)
+        const updateNftStatusResponse = await NFTFormService.updateStatus('issued', req.body.id)
         if (!updateNftStatusResponse.success) {
             res_obj.success = false;
             res_obj.message = "NFT does not exist";
@@ -548,10 +573,14 @@ module.exports = {
             return res.badRequest(res_obj);
         }
 
+        const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
+            .populate('status')
+            .populate('xrpl_tx')
+            .populate('xumm');
 
         res_obj.success = true
         res_obj.message = "NFT claim payload generated successfully."
-        res_obj.data = { nft, xumm_api_payload }
+        res_obj.data = { nft: nftPopulated }
 
         return _requestRes(res_obj, res)
     },
@@ -567,21 +596,45 @@ module.exports = {
         await deliverNFTService.deliver(req.body.id, req.body.userWallet)
 
         // // We dont need to call deliver function here, add to claim
+        // TODO: When called as a service (not from the endpoint) get it from the XUMM payload (claimNFTService)
         const delivered = await deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS: req.body.userWallet }); //Get X_USER_WALLET_ADDRESS from XUMM event
 
-        NFTFormService.updateStatus('delivered', req.body.id)
+        const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
+            .populate('status')
+            .populate('xrpl_tx')
+            .populate('xumm');
+
+        const updateNftStatusResponse = await NFTFormService.updateStatus('delivered', req.body.id)
         if (!updateNftStatusResponse.success) {
             res_obj.success = false;
             res_obj.message = "NFT does not exist";
+            res_obj.data = { nft: nftPopulated }
+
+            return res.badRequest(res_obj);
+        }
+
+        const nft_form_status = updateNftStatusResponse.nft_form_status
+        const nft = updateNftStatusResponse.nft
+
+        const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": delivered }).fetch();
+
+        if (delivered.engine_result !== "tesSUCCESS" || delivered.accepted !== true) {
+            res_obj.success = false;
+            res_obj.message = "NFT not delivered";
+            res_obj.data = { nft: nftPopulated }
 
             return res.badRequest(res_obj);
         }
 
         sails.sockets.blast('delivered', {
             nftId: req.body.id
-          })
-  
-        return _requestRes(delivered, res)
+        })
+
+        res_obj.success = true
+        res_obj.message = "NFT delivered successfully."
+        res_obj.data = { nft: nftPopulated }
+
+        return _requestRes(res_obj, res)
 
     },
 
@@ -612,6 +665,8 @@ module.exports = {
 
         allNFT = await sails.models.nftform.find()
             .where(NFTOptions.where)
+            .populate('status', associationOptions)
+            .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
             .sort(`${sortBy} ${order}`)
             .skip((page - 1) * pageSize)

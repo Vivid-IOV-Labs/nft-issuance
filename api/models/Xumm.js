@@ -12,9 +12,9 @@ module.exports = {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-    xumm_api_status: {
-      type: "string"
-    },
+    payloadStatus: { type: "string" },
+    payload: { type: "json" },
+
 
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
