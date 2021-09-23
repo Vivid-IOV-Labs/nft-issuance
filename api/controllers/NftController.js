@@ -87,11 +87,9 @@ module.exports = {
             data: {}
         };
 
-        const nftId = req.body.id
-        // const nft = await sails.models.nftform.findOne({ "id": _o.nftId })
-        // txList[1].Currency = textToHex({ text: nft.details.token_name });
-        // TODO: Pass token_name instead of the nftId. Make the sails.models.nftform.findOne() here
-        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, nftId });
+        const nft = await sails.models.nftform.findOne({ "id": req.body.id })
+        const tokenName = nft.details.token_name
+        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, tokenName });
 
         if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
             const updateNftStatusResponse = await NFTFormService.updateStatus('approved', req.body.id)
