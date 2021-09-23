@@ -107,6 +107,10 @@ _updateXummRecord = async (nftId, event, payloadStatus) => {
     const objectId = new ObjectId(nftId)
 
     const payload = event.payload_uuidv4 ? await Sdk.payload.get(event.payload_uuidv4) : {}
+    // console.log(payload.response.account)
+    // TODO: Create new table xummResponses. Associate with xumm record. (One-to-many relathionship)
+    // Call _updateXummRecord() on each state 'rejected', 'signed' etc and add new record to xummResponse every time.
+    // xummResponses table will have 'payload', 'payloadStatus'
 
     const xummUpdateRecord = {
         $set: {
