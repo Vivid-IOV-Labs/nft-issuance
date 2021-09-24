@@ -43,7 +43,13 @@ module.exports = {
     xumm: {
       collection: 'Xumm',
       via: 'nft'
+    },
+
+    xummresponse: {
+      collection: 'XummResponses',
+      via: 'nft'
     }
+
 
   },
 

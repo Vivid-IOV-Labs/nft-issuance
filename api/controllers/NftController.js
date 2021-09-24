@@ -68,6 +68,7 @@ module.exports = {
                     .populate('status', statusAssociationOptions)
                     .populate('xrpl_tx', xrplTransactionsAssociationOptions)
                     .populate('xumm');
+                    //TODO: Remove populate('xumm') when empty
 
                 res_obj.success = true
                 res_obj.message = "NFT created successfully"
@@ -217,6 +218,10 @@ module.exports = {
 
         //This is supposed to be done by the public users in the Xumm App.        
 
+        // TODO: Should we use nftForm.locked value to determine whether it can be claimed or not? 
+        // If so, no need to sort in claimNFTService._updateXummRecord
+        // YES CHECK AND BLOCK
+
         //Prepare transaction payload for xumm users to sign and listen.
         const txTrustSet = await NFTService.txTrustSet()
         const claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
@@ -247,10 +252,10 @@ module.exports = {
 
         let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
         let xummAssociationOptions = { where: { id: xumm_api_payload.id } }
-
+   
         const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
             .populate('status', statusAssociationOptions)
-            .populate('xumm', xummAssociationOptions);
+            .populate('xumm', xummAssociationOptions)
 
         res_obj.success = true
         res_obj.message = "NFT claim payload generated successfully."
@@ -296,13 +301,14 @@ module.exports = {
         let order = request.order || 'asc'
         let pageSize = request.pageSize || 10
         let page = request.page || 1
-
+        // TODO: filter by current_status=['delivered', 'issued', ...]
 
         allNFT = await sails.models.nftform.find()
             .where(NFTOptions.where)
             .populate('status', associationOptions)
             .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
+            .populate('xummresponse', associationOptions)
             .sort(`${sortBy} ${order}`)
             .skip((page - 1) * pageSize)
             .limit(pageSize)
