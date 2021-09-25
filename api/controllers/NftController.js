@@ -69,8 +69,6 @@ module.exports = {
                 const nftPopulated = await sails.models.nftform.findOne({ "id": nft.id })
                     .populate('status', statusAssociationOptions)
                     .populate('xrpl_tx', xrplTransactionsAssociationOptions)
-                    .populate('xumm');
-                    //TODO: Remove populate('xumm') when empty
 
                 res_obj.success = true
                 res_obj.message = "NFT created successfully"
@@ -114,7 +112,6 @@ module.exports = {
                 const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
                     .populate('status', statusAssociationOptions)
                     .populate('xrpl_tx', xrplTransactionsAssociationOptions)
-                    .populate('xumm');
 
                 res_obj.success = true
                 res_obj.message = "NFT approved successfully"
@@ -188,7 +185,6 @@ module.exports = {
                         const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
                             .populate('status', statusAssociationOptions)
                             .populate('xrpl_tx', xrplTransactionsAssociationOptions)
-                            .populate('xumm');
 
                         res_obj.success = true
                         res_obj.message = "NFT issued successfully"
@@ -220,15 +216,20 @@ module.exports = {
 
         //This is supposed to be done by the public users in the Xumm App.        
 
-        // TODO: Should we use nftForm.locked value to determine whether it can be claimed or not? 
-        // If so, no need to sort in claimNFTService._updateXummRecord
-        // YES CHECK AND BLOCK
+        const nft = await sails.models.nftform.findOne({ "id": req.body.id });
+        if (nft.locked) {
+            let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
+            sails.log.info(message)
+            res_obj.success = false
+            res_obj.message = message
+
+            return _requestRes(res_obj, res)
+        }
 
         //Prepare transaction payload for xumm users to sign and listen.
         const txTrustSet = await NFTService.txTrustSet()
         const claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
 
-        const nft = await sails.models.nftform.findOne({ "id": req.body.id });
         const newXummRecord = {
             "nft": nft.id,
             "details": claimCreatedDetails
