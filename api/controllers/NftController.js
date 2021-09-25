@@ -46,6 +46,8 @@ module.exports = {
             res_obj.message = "token_name should have less than 40 characters";
 
             return res.badRequest(res_obj);
+        } else {
+            req.body.token_name = req.body.token_name.padEnd(40, ' ')
         }
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
