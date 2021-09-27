@@ -40,7 +40,7 @@ module.exports = {
                 sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })
-
+                            
                 await deliverNFTService.run(nftId)
                 _updateXummRecord(nftId, event.data, 'delivered')
             }
@@ -103,27 +103,21 @@ _unlockNft = async (nftId) => {
 }
 
 _updateXummRecord = async (nftId, event, payloadStatus) => {
-    var db = sails.getDatastore().manager;
-    const objectId = new ObjectId(nftId)
-
     const payload = event.payload_uuidv4 ? await Sdk.payload.get(event.payload_uuidv4) : {}
     // console.log(payload.response.account)
     // TODO: Create new table xummResponses. Associate with xumm record. (One-to-many relathionship)
     // Call _updateXummRecord() on each state 'rejected', 'signed' etc and add new record to xummResponse every time.
     // xummResponses table will have 'payload', 'payloadStatus'
 
-    const xummUpdateRecord = {
-        $set: {
-            "payload": payload,
-            "payloadStatus": payloadStatus
-        }
-    }
+    const xumm = await sails.models.xumm.find({ nft: nftId })
+        .sort('createdAt DESC')
+        .limit(1)
 
-    var xummUpdated = await db.collection('xumm').findOneAndUpdate(
-        { nft: objectId }, xummUpdateRecord, { returnOriginal: false }
-    );
-
-    if (!xummUpdated.lastErrorObject.updatedExisting) {
-        sails.log.error(`Could not udpate xumm. nftId: ${nftId}`);
+    const xummResponsesNewRecord = {
+        xumm: xumm[0].id,
+        payload: payload,
+        payloadStatus: payloadStatus,
+        nft: nftId,
     }
+    await sails.models.xummresponses.create(xummResponsesNewRecord)
 }

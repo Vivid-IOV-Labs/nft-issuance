@@ -18,6 +18,8 @@ const _requestRes = async (_xresp, res) => {
 
     if (_xresp.error) {
         return res.serverError(_xresp);
+    } else if (_xresp.messageStatus === 'NFT_LOCKED') {
+        res.status(405).send(_xresp)
     } else {
         return res.ok(_xresp);
     }
@@ -46,6 +48,8 @@ module.exports = {
             res_obj.message = "token_name should have less than 40 characters";
 
             return res.badRequest(res_obj);
+        } else {
+            req.body.token_name = req.body.token_name.padEnd(40, ' ')
         }
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
@@ -67,7 +71,6 @@ module.exports = {
                 const nftPopulated = await sails.models.nftform.findOne({ "id": nft.id })
                     .populate('status', statusAssociationOptions)
                     .populate('xrpl_tx', xrplTransactionsAssociationOptions)
-                    .populate('xumm');
 
                 res_obj.success = true
                 res_obj.message = "NFT created successfully"
@@ -87,11 +90,9 @@ module.exports = {
             data: {}
         };
 
-        const nftId = req.body.id
-        // const nft = await sails.models.nftform.findOne({ "id": _o.nftId })
-        // txList[1].Currency = textToHex({ text: nft.details.token_name });
-        // TODO: Pass token_name instead of the nftId. Make the sails.models.nftform.findOne() here
-        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, nftId });
+        const nft = await sails.models.nftform.findOne({ "id": req.body.id })
+        const tokenName = nft.details.token_name
+        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, tokenName });
 
         if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
             const updateNftStatusResponse = await NFTFormService.updateStatus('approved', req.body.id)
@@ -113,7 +114,6 @@ module.exports = {
                 const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
                     .populate('status', statusAssociationOptions)
                     .populate('xrpl_tx', xrplTransactionsAssociationOptions)
-                    .populate('xumm');
 
                 res_obj.success = true
                 res_obj.message = "NFT approved successfully"
@@ -187,7 +187,6 @@ module.exports = {
                         const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
                             .populate('status', statusAssociationOptions)
                             .populate('xrpl_tx', xrplTransactionsAssociationOptions)
-                            .populate('xumm');
 
                         res_obj.success = true
                         res_obj.message = "NFT issued successfully"
@@ -219,11 +218,21 @@ module.exports = {
 
         //This is supposed to be done by the public users in the Xumm App.        
 
+        const nft = await sails.models.nftform.findOne({ "id": req.body.id });
+        if (nft.locked) {
+            let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
+            sails.log.info(message)
+            res_obj.success = false
+            res_obj.message = message
+            res_obj.messageStatus = 'NFT_LOCKED'
+
+            return _requestRes(res_obj, res)
+        }
+
         //Prepare transaction payload for xumm users to sign and listen.
         const txTrustSet = await NFTService.txTrustSet()
         const claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
 
-        const nft = await sails.models.nftform.findOne({ "id": req.body.id });
         const newXummRecord = {
             "nft": nft.id,
             "details": claimCreatedDetails
@@ -249,10 +258,10 @@ module.exports = {
 
         let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
         let xummAssociationOptions = { where: { id: xumm_api_payload.id } }
-
+   
         const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
             .populate('status', statusAssociationOptions)
-            .populate('xumm', xummAssociationOptions);
+            .populate('xumm', xummAssociationOptions)
 
         res_obj.success = true
         res_obj.message = "NFT claim payload generated successfully."
@@ -305,6 +314,7 @@ module.exports = {
             .populate('status', associationOptions)
             .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
+            .populate('xummresponse', associationOptions)
             .sort(`${sortBy} ${order}`)
             .skip((page - 1) * pageSize)
             .limit(pageSize)
