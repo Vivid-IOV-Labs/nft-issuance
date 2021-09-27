@@ -18,6 +18,8 @@ const _requestRes = async (_xresp, res) => {
 
     if (_xresp.error) {
         return res.serverError(_xresp);
+    } else if (_xresp.messageStatus === 'NFT_LOCKED') {
+        res.status(405).send(_xresp)
     } else {
         return res.ok(_xresp);
     }
@@ -222,6 +224,7 @@ module.exports = {
             sails.log.info(message)
             res_obj.success = false
             res_obj.message = message
+            res_obj.messageStatus = 'NFT_LOCKED'
 
             return _requestRes(res_obj, res)
         }
