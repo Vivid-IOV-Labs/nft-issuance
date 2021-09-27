@@ -150,8 +150,7 @@ const createTrustReceiverAndIssuer = async (_o) => {
     txList[1].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[1].Fee = txInfo.feeValue;
     txList[1].Account = _o.X_BRAND_WALLET_ADDRESS;
-    const nft = await sails.models.nftform.findOne({ "id": _o.nftId })
-    txList[1].Currency = textToHex({ text: nft.details.token_name });
+    txList[1].Currency = textToHex({ text: _o.tokenName });
 
     const xaccount = await _getXAccount(_o.X_BRAND_SEED);
 
