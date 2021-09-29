@@ -292,8 +292,6 @@ module.exports = {
             data: {}
         };
 
-        var request = req.allParams();
-
         let allNFT = null;
         let totalNFT = 0;
         var associationOptions = {
@@ -302,13 +300,15 @@ module.exports = {
         var NFTOptions = {
             where: {}
         }
-
-        let sortBy = request.sortBy || 'createdAt'
-        let order = request.order || 'asc'
-        let pageSize = request.pageSize || 10
-        let page = request.page || 1
-        // TODO: filter by current_status=['delivered', 'issued', ...]
-
+        
+        let sortBy = req.query.sortBy || 'createdAt'
+        let order = req.query.order || 'asc'
+        let pageSize = req.query.pageSize || 10
+        let page = req.query.page || 1
+        
+        if (req.query.id) NFTOptions.where.id = req.query.id
+        if (req.query.status) NFTOptions.where.current_status = req.query.status
+        
         allNFT = await sails.models.nftform.find()
             .where(NFTOptions.where)
             .populate('status', associationOptions)
@@ -324,16 +324,56 @@ module.exports = {
             .where(NFTOptions.where)
             .meta({ enableExperimentalDeepTargets: true })
 
-
         res_obj.success = true
         res_obj.message = "List of NFTs"
         res_obj.data = { allNFT, totalNFT }
 
-
         return _requestRes(res_obj, res)
+    },
+
+    // UNDER DEVELOPMENT
+    update: async function (req, res) {
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
+        
+        console.log('here')
+        nft = await sails.models.nftform.findOne({ id: req.query.id })
+        const allowedToBeChanged = [
+            'details.token_name',
+            'details.url'
+        ]
+        
+        console.log(req.body)
+        console.log(Object.keys(req.body).every(allowedToBeChanged))
+        // if (body.every(allowedToBeChanged))
+        
+        res.ok()
+        return
+        
+        const nftUpdateValues = {
+            $set: {
+                "balanceAvailable": balanceAvailable
+            }
+        }
+        const mediaUpdated = await db.collection('media').findOneAndUpdate(
+            { mediaID: media.mediaID },
+            mediaUpdateValues,
+            { returnOriginal: false });
+
+        if (!mediaUpdated.lastErrorObject.updatedExisting) {
+            let message = `Could not update media. mediaID: ${media.mediaID}`
+            sails.log.error(message);
+            res.serverError({
+                success: false,
+                message: message,
+                data: {}
+            })
+            return false
+        }
+
 
     }
-
-
-
 };
