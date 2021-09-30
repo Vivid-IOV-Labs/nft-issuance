@@ -217,7 +217,7 @@ module.exports = {
         };
 
         //This is supposed to be done by the public users in the Xumm App.        
-
+        
         const nft = await sails.models.nftform.findOne({ "id": req.body.id });
         if (nft.locked) {
             let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
@@ -279,7 +279,9 @@ module.exports = {
         };
 
         res_obj = await deliverNFTService.run(req.body.id, req.body.userWallet)
-
+        // TODO: To properly complete this step we still need to create a new xummResponse record and verify delivery 
+        // as in claimNFTService.listen()
+        
         return _requestRes(res_obj, res)
 
     },
