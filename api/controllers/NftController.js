@@ -142,6 +142,14 @@ module.exports = {
             data: {}
         };
 
+        const nftForm = await NFTForm.findOne({id: req.body.id})
+        if (nftForm.current_status !== 'approved') {
+            res_obj.success = false;
+            res_obj.message = "NFT has not been approved";
+
+            return res.badRequest(res_obj);
+        }
+
         const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED }, { X_BRAND_WALLET_ADDRESS })
 
         //If the XRPL transactions where an array of transactions 
