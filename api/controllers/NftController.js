@@ -224,6 +224,12 @@ module.exports = {
         //This is supposed to be done by the public users in the Xumm App.        
 
         const nft = await sails.models.nftform.findOne({ "id": req.body.id });
+        if (nft.current_status !== 'issued') {
+            res_obj.success = false;
+            res_obj.message = "NFT has not been issued";
+
+            return res.badRequest(res_obj);
+        }
         if (nft.locked) {
             let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
             sails.log.info(message)
