@@ -9,7 +9,13 @@ module.exports = {
         };
 
         const verify = verifySignature(txBlob)
-        
+
+        const nftDeliveryVerificationNewRecord = {
+            nft: nftId,
+            verification: verify
+        }
+        await sails.models.nftdeliveryverification.create(nftDeliveryVerificationNewRecord)
+    
         // TODO: Do we need the receiver/issuer (issuer == X_BRAND_WALLET_ADDRESS)?
         // if (verify.signedBy === receiver && verify.signatureValid) {
         if (verify.signatureValid) {
