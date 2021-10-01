@@ -305,7 +305,7 @@ module.exports = {
         }
         res_obj.success = true
         res_obj.message = "NFT rejected successfully"
-        res_obj.data = { nft: { id: req.body.id } }
+        res_obj.data = { nft: updateNftStatusResponse.nft }
 
         return _requestRes(res_obj, res)
     },
