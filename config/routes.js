@@ -54,7 +54,7 @@ module.exports.routes = {
   // 'POST /deliver': { controller: "NftController", action: "deliver", skipAssets: true },
 
   'GET /nft': { controller: "NftController", action: "find", skipAssets: true },
-  // 'GET /nft/:id': { controller: "NftController", action: "findOne", skipAssets: true },
+  'GET /nft/:id': { controller: "NftController", action: "findOne", skipAssets: true },
   'POST /nft': { controller: "NftController", action: "create", skipAssets: true },
   // 'PUT /nft': { controller: "NftController", action: "update", skipAssets: true },
   // 'DELETE /nft': { controller: "NftController", action: "delete", skipAssets: true },

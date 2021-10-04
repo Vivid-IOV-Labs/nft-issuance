@@ -340,6 +340,42 @@ module.exports = {
         return _requestRes(res_obj, res)
     },
 
+    findOne: async function (req, res) {
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
+        var associationOptions = {
+            where: {}
+        }
+        
+        const id = req.param('id')
+        if (!id) {
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = `Path parameter not found. id is required.`
+
+            return _requestRes(res_obj, res)
+        }
+
+        associationOptions.where.nft = id
+
+        const nft = await sails.models.nftform.findOne({ id: id })
+            .populate('status', associationOptions)
+            .populate('xrpl_tx', associationOptions)
+            .populate('xumm', associationOptions)
+            .populate('xummresponse', associationOptions)
+            .meta({ enableExperimentalDeepTargets: true })
+
+        res_obj.success = true
+        res_obj.message = `NFT fetched. id: ${id}`
+        res_obj.data = { nft }
+
+        return _requestRes(res_obj, res)
+
+    },
+
     find: async function (req, res) {
 
         let res_obj = {
@@ -422,7 +458,7 @@ module.exports = {
             res_obj.success = false
             res_obj.error = true
             res_obj.message = `Could not update nft. id: ${req.query.id}`
-        
+
             return _requestRes(res_obj, res)
         }
 
