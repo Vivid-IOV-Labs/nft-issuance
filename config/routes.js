@@ -63,6 +63,7 @@ module.exports.routes = {
   'POST /nft/issue': { controller: "NftController", action: "issue", skipAssets: true },
   'POST /nft/claim': { controller: "NftController", action: "claim", skipAssets: true },
   'POST /nft/deliver': { controller: "NftController", action: "deliver", skipAssets: true },
+  'POST /nft/reject': { controller: "NftController", action: "reject", skipAssets: true },
   'PATCH /nft': { controller: "NftController", action: "update", skipAssets: true },
 
 

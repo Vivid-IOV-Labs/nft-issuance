@@ -155,15 +155,20 @@ module.exports = {
             data: {}
         };
 
+        const nftForm = await NFTForm.findOne({ id: req.body.id })
+        if (nftForm.current_status !== 'approved') {
+            res_obj.success = false;
+            res_obj.message = "NFT has not been approved";
+
+            return res.badRequest(res_obj);
+        }
+
         const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED }, { X_BRAND_WALLET_ADDRESS })
 
         //If the XRPL transactions where an array of transactions 
         if (Array.isArray(issued)) {
             let isSuccess = issued.every(txIsSuccess);
             let isAccepted = issued.every(txIsAccepted);
-
-            console.log('isSuccess', isSuccess)
-            console.log('isAccepted', isAccepted)
 
             if (isSuccess && isAccepted) {
                 const updateNftStatusResponse = await NFTFormService.updateStatus('issued', req.body.id)
@@ -239,13 +244,21 @@ module.exports = {
         //This is supposed to be done by the public users in the Xumm App.        
 
         const nft = await sails.models.nftform.findOne({ "id": req.body.id });
-        // if (nft.locked) {
-        //     res_obj.success = false
-        //     res_obj.message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
-        //     res_obj.messageStatus = 'NFT_LOCKED'
+        if (nft.current_status !== 'issued') {
+            res_obj.success = false;
+            res_obj.message = "NFT has not been issued";
 
-        //     return _requestRes(res_obj, res)
-        // }
+            return res.badRequest(res_obj);
+        }
+        if (nft.locked) {
+            let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
+            sails.log.info(message)
+            res_obj.success = false
+            res_obj.message = message
+            res_obj.messageStatus = 'NFT_LOCKED'
+
+            return _requestRes(res_obj, res)
+        }
 
         //Prepare transaction payload for xumm users to sign and listen.
         const txTrustSet = await NFTService.txTrustSet()
@@ -275,7 +288,7 @@ module.exports = {
 
         let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
         let xummAssociationOptions = { where: { id: xumm_api_payload.id } }
-   
+
         const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
             .populate('status', statusAssociationOptions)
             .populate('xumm', xummAssociationOptions)
@@ -301,6 +314,27 @@ module.exports = {
 
     },
 
+    reject: async function (req, res) {
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
+
+        const updateNftStatusResponse = await NFTFormService.updateStatus('rejected', req.body.id)
+        if (!updateNftStatusResponse.success) {
+            res_obj.success = false;
+            res_obj.message = "NFT does not exist";
+
+            return res.badRequest(res_obj);
+        }
+        res_obj.success = true
+        res_obj.message = "NFT rejected successfully"
+        res_obj.data = { nft: updateNftStatusResponse.nft }
+
+        return _requestRes(res_obj, res)
+    },
+
     find: async function (req, res) {
 
         let res_obj = {
@@ -317,15 +351,15 @@ module.exports = {
         var NFTOptions = {
             where: {}
         }
-        
+
         let sortBy = req.query.sortBy || 'createdAt'
         let order = req.query.order || 'asc'
         let pageSize = req.query.pageSize || 10
         let page = req.query.page || 1
-        
+
         if (req.query.id) NFTOptions.where.id = req.query.id
         if (req.query.status) NFTOptions.where.current_status = req.query.status
-        
+
         allNFT = await sails.models.nftform.find()
             .where(NFTOptions.where)
             .populate('status', associationOptions)
@@ -355,21 +389,21 @@ module.exports = {
             message: "",
             data: {}
         };
-        
+
         console.log('here')
         nft = await sails.models.nftform.findOne({ id: req.query.id })
         const allowedToBeChanged = [
             'details.token_name',
             'details.url'
         ]
-        
+
         console.log(req.body)
         console.log(Object.keys(req.body).every(allowedToBeChanged))
         // if (body.every(allowedToBeChanged))
-        
+
         res.ok()
         return
-        
+
         const nftUpdateValues = {
             $set: {
                 "balanceAvailable": balanceAvailable
