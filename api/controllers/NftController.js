@@ -358,7 +358,7 @@ module.exports = {
         let page = req.query.page || 1
 
         if (req.query.id) NFTOptions.where.id = req.query.id
-        if (req.query.status) NFTOptions.where.current_status = req.query.status
+        if (req.query.status) NFTOptions.where.current_status = JSON.parse(req.query.status)
 
         allNFT = await sails.models.nftform.find()
             .where(NFTOptions.where)
