@@ -6,6 +6,8 @@
  */
 
 require('dotenv').config();
+let ObjectId = require('mongodb').ObjectId;
+let db = sails.getDatastore().manager;
 
 // //Generate Wallets
 const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
@@ -19,6 +21,9 @@ const _requestRes = async (_xresp, res) => {
     if (_xresp.error) {
         sails.log.error(_xresp.message)
         return res.serverError(_xresp);
+    } else if (_xresp.badRequest) {
+        sails.log.info(_xresp.message)
+        return res.badRequest(_xresp);
     } else if (_xresp.messageStatus === 'NFT_LOCKED') {
         sails.log.info(_xresp.message)
         res.status(405).send(_xresp)
@@ -195,7 +200,7 @@ module.exports = {
                     const xrpl_tx = await sails.models.xrpltransactions.createEach(xrpl_tx_arr).fetch();
 
                     let allEntriesHaveID = xrpl_tx.every(hasDbID);
-                    
+
                     if (!allEntriesHaveID) {
                         res_obj.success = false
                         res_obj.error = true
@@ -203,7 +208,7 @@ module.exports = {
 
                         return _requestRes(res_obj, res)
                     }
-        
+
                     let xrpl_tx_ids = xrpl_tx_arr.map(record => record.id)
 
                     let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
@@ -335,6 +340,42 @@ module.exports = {
         return _requestRes(res_obj, res)
     },
 
+    findOne: async function (req, res) {
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
+        var associationOptions = {
+            where: {}
+        }
+        
+        const id = req.param('id')
+        if (!id) {
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = `Path parameter not found. id is required.`
+
+            return _requestRes(res_obj, res)
+        }
+
+        associationOptions.where.nft = id
+
+        const nft = await sails.models.nftform.findOne({ id: id })
+            .populate('status', associationOptions)
+            .populate('xrpl_tx', associationOptions)
+            .populate('xumm', associationOptions)
+            .populate('xummresponse', associationOptions)
+            .meta({ enableExperimentalDeepTargets: true })
+
+        res_obj.success = true
+        res_obj.message = `NFT fetched. id: ${id}`
+        res_obj.data = { nft }
+
+        return _requestRes(res_obj, res)
+
+    },
+
     find: async function (req, res) {
 
         let res_obj = {
@@ -382,7 +423,6 @@ module.exports = {
         return _requestRes(res_obj, res)
     },
 
-    // UNDER DEVELOPMENT
     update: async function (req, res) {
         let res_obj = {
             success: false,
@@ -390,41 +430,42 @@ module.exports = {
             data: {}
         };
 
-        console.log('here')
         nft = await sails.models.nftform.findOne({ id: req.query.id })
         const allowedToBeChanged = [
             'details.token_name',
             'details.url'
         ]
+        const isRequestBodyParamsAccepted = Object.keys(req.body).every(param => allowedToBeChanged.includes(param))
 
-        console.log(req.body)
-        console.log(Object.keys(req.body).every(allowedToBeChanged))
-        // if (body.every(allowedToBeChanged))
+        if (!isRequestBodyParamsAccepted) {
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = `Wrong body parameters. These parameters are allowed: ${allowedToBeChanged}`
 
-        res.ok()
-        return
-
-        const nftUpdateValues = {
-            $set: {
-                "balanceAvailable": balanceAvailable
-            }
+            return _requestRes(res_obj, res)
         }
-        const mediaUpdated = await db.collection('media').findOneAndUpdate(
-            { mediaID: media.mediaID },
-            mediaUpdateValues,
+
+        const objectId = new ObjectId(req.query.id)
+        const nftUpdateValues = {
+            $set: req.body
+        }
+        const nftUpdated = await db.collection('nftform').findOneAndUpdate(
+            { _id: objectId },
+            nftUpdateValues,
             { returnOriginal: false });
 
-        if (!mediaUpdated.lastErrorObject.updatedExisting) {
-            let message = `Could not update media. mediaID: ${media.mediaID}`
-            sails.log.error(message);
-            res.serverError({
-                success: false,
-                message: message,
-                data: {}
-            })
-            return false
+        if (!nftUpdated.lastErrorObject.updatedExisting) {
+            res_obj.success = false
+            res_obj.error = true
+            res_obj.message = `Could not update nft. id: ${req.query.id}`
+
+            return _requestRes(res_obj, res)
         }
 
+        res_obj.success = true
+        res_obj.message = `NFT updated successfully. id: ${req.query.id}`
+        res_obj.data = { nft: nftUpdated.value }
 
+        return _requestRes(res_obj, res)
     }
 };
