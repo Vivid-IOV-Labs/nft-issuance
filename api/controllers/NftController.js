@@ -491,7 +491,6 @@ module.exports = {
         await sails.models.nftformstatus.archive({ nft: req.body.id })
         await sails.models.xrpltransactions.archive({ nft: req.body.id })
         await sails.models.xumm.archive({ nft: req.body.id })
-        await sails.models.xrpltransactions.archive({ nft: req.body.id })
         await sails.models.xummresponses.archive({ nft: req.body.id })
         await sails.models.nftdeliveryverification.archive({ nft: req.body.id })
 
