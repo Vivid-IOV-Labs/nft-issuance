@@ -7,7 +7,7 @@
 
 module.exports = {
 
-  schema: true,
+  schema: false,
   attributes: {
 
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
