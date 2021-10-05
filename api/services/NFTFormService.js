@@ -3,7 +3,7 @@ var ObjectId = require('mongodb').ObjectId;
 module.exports = {
     updateStatus: async (currentStatus, nftId) => {
         /* 
-        Update current_status and previous_status in NFTForm table
+        Update current_status and previous_status in NFT_Form table
         */
        
         var db = sails.getDatastore().manager;
@@ -13,9 +13,9 @@ module.exports = {
             message: ""
         };
 
-        const status_options = await sails.models.statusoptions.findOne({ name: currentStatus });
+        const status_options = await sails.models.status_options.findOne({ name: currentStatus });
 
-        const nft = await sails.models.nftform.findOne({ "id": nftId });
+        const nft = await sails.models.nft_form.findOne({ "id": nftId });
 
         if (!nft) {
             res_obj.success = false;
@@ -27,7 +27,7 @@ module.exports = {
 
         const objectId = new ObjectId(nftId)
 
-        const nftUpdated = await db.collection('nftform').findOneAndUpdate(
+        const nftUpdated = await db.collection('nft_form').findOneAndUpdate(
             { _id: objectId },
             {
                 $set: {
@@ -38,7 +38,7 @@ module.exports = {
             { returnOriginal: false }
         );
 
-        res_obj.nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+        res_obj.nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
         res_obj.nft = nft
 
         return res_obj
