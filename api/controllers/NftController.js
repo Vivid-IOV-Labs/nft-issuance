@@ -349,7 +349,7 @@ module.exports = {
         var associationOptions = {
             where: {}
         }
-        
+
         const id = req.param('id')
         if (!id) {
             res_obj.success = false
@@ -465,6 +465,39 @@ module.exports = {
         res_obj.success = true
         res_obj.message = `NFT updated successfully. id: ${req.query.id}`
         res_obj.data = { nft: nftUpdated.value }
+
+        return _requestRes(res_obj, res)
+    },
+
+    delete: async function (req, res) {
+        let res_obj = {
+            success: false,
+            message: "",
+            data: {}
+        };
+        var associationOptions = {
+            where: {}
+        }
+        associationOptions.where.nft = req.body.id
+
+        const allNFT = await sails.models.nftform.findOne({ id: req.body.id })
+            .populate('status', associationOptions)
+            .populate('xrpl_tx', associationOptions)
+            .populate('xumm', associationOptions)
+            .populate('xummresponse', associationOptions)
+            .meta({ enableExperimentalDeepTargets: true })
+
+        await sails.models.nftform.archive({ id: req.body.id })
+        await sails.models.nftformstatus.archive({ nft: req.body.id })
+        await sails.models.xrpltransactions.archive({ nft: req.body.id })
+        await sails.models.xumm.archive({ nft: req.body.id })
+        await sails.models.xrpltransactions.archive({ nft: req.body.id })
+        await sails.models.xummresponses.archive({ nft: req.body.id })
+        await sails.models.nftdeliveryverification.archive({ nft: req.body.id })
+
+        res_obj.success = true
+        res_obj.message = "All NFT has been deleted."
+        res_obj.data = { nft: allNFT }
 
         return _requestRes(res_obj, res)
     }
