@@ -10,28 +10,27 @@ module.exports = {
 
         const verify = verifySignature(txBlob)
 
-        const nftDeliveryVerificationNewRecord = {
+        const nftClaimVerificationNewRecord = {
             nft: nftId,
             verification: verify
         }
-        await sails.models.nftdeliveryverification.create(nftDeliveryVerificationNewRecord)
+        await sails.models.nftclaimverification.create(nftClaimVerificationNewRecord)
     
-        // TODO: Do we need the receiver/issuer (issuer == X_BRAND_WALLET_ADDRESS)?
-        // if (verify.signedBy === receiver && verify.signatureValid) {
-        if (verify.signatureValid) {
+        if (verify.signedBy === receiver && verify.signatureValid) {
             sails.sockets.blast('verified', {
                 nftId: nftId
             })
     
             res_obj.success = true
-            res_obj.message = "NFT delivery has been verified"
+            res_obj.message = "NFT claim has been verified"
             
             return res_obj
         }
 
         res_obj.success = false;
-        res_obj.message = "Could not verify NFT delivery";
-
+        res_obj.message = "Could not verify NFT claim";
+        sails.log.error(res_obj.message)
+        
         return res_obj
     },
 };

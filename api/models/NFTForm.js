@@ -50,8 +50,8 @@ module.exports = {
       via: 'nft'
     },
 
-    nftdeliveryverification: {
-      collection: 'NFTDeliveryVerification',
+    nftclaimverification: {
+      collection: 'NFTClaimVerification',
       via: 'nft'
     }
 
