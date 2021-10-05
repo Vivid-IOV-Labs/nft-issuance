@@ -50,13 +50,13 @@ module.exports = {
             data: {}
         };
 
-        if (req.body.token_name.length > 40) {
+        if (req.body.token_name.length > 38) {
             res_obj.success = false;
-            res_obj.message = "token_name should have less than 40 characters";
+            res_obj.message = "token_name should not have more than 38 characters";
 
             return res.badRequest(res_obj);
         } else {
-            req.body.token_name = req.body.token_name.padEnd(40, ' ')
+            req.body.token_name = '0x02' + req.body.token_name.padEnd(38, ' ')
         }
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
