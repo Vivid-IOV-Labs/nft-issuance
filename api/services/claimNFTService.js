@@ -64,7 +64,7 @@ module.exports = {
 
 _lockNft = async (nftId) => {
     /*
-        Set locked=true in NFTForm table
+        Set locked=true in NFT_Form table
     */
 
     var db = sails.getDatastore().manager;
@@ -76,7 +76,7 @@ _lockNft = async (nftId) => {
         }
     }
 
-    var nftFormUpdated = await db.collection('nftform').findOneAndUpdate(
+    var nftFormUpdated = await db.collection('nft_form').findOneAndUpdate(
         { _id: objectId }, nftFormUpdateRecord, { returnOriginal: false }
     );
 
@@ -86,7 +86,7 @@ _lockNft = async (nftId) => {
 }
 
 _unlockNft = async (nftId) => {
-    // Set locked=false in NFTForm table
+    // Set locked=false in NFT_Form table
 
     var db = sails.getDatastore().manager;
     const objectId = new ObjectId(nftId)
@@ -97,7 +97,7 @@ _unlockNft = async (nftId) => {
         }
     }
 
-    var nftFormUpdated = await db.collection('nftform').findOneAndUpdate(
+    var nftFormUpdated = await db.collection('nft_form').findOneAndUpdate(
         { _id: objectId }, nftFormUpdateRecord, { returnOriginal: false }
     );
 
@@ -119,7 +119,7 @@ _addXummResponsesRecord = async (nftId, event, payloadStatus) => {
         payloadStatus: payloadStatus,
         nft: nftId,
     }
-    await sails.models.xummresponses.create(xummResponsesNewRecord)
+    await sails.models.xumm_responses.create(xummResponsesNewRecord)
     
     return xummResponsesNewRecord
 }

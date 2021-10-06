@@ -62,13 +62,13 @@ module.exports = {
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
 
-            const status_options = await sails.models.statusoptions.findOne({ name: "created" });
+            const status_options = await sails.models.status_options.findOne({ name: "created" });
 
-            const nft = await sails.models.nftform.create({ "details": req.body, "current_status": status_options.name }).fetch();
+            const nft = await sails.models.nft_form.create({ "details": req.body, "current_status": status_options.name }).fetch();
 
-            const nft_form_status = await sails.models.nftformstatus.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+            const nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
 
-            const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": created }).fetch();
+            const xrpl_tx = await sails.models.xrpl_transactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": created }).fetch();
 
             let statusAssociationOptions = { where: { id: nft_form_status.id } }
 
@@ -81,7 +81,7 @@ module.exports = {
             }
 
             let xrplTransactionsAssociationOptions = { where: { id: xrpl_tx.id } }
-            const nftPopulated = await sails.models.nftform.findOne({ "id": nft.id })
+            const nftPopulated = await sails.models.nft_form.findOne({ "id": nft.id })
                 .populate('status', statusAssociationOptions)
                 .populate('xrpl_tx', xrplTransactionsAssociationOptions)
 
@@ -102,7 +102,7 @@ module.exports = {
             data: {}
         };
 
-        const nft = await sails.models.nftform.findOne({ "id": req.body.id })
+        const nft = await sails.models.nft_form.findOne({ "id": req.body.id })
         const tokenName = nft.details.token_name
         const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, tokenName });
 
@@ -117,7 +117,7 @@ module.exports = {
             const nft_form_status = updateNftStatusResponse.nft_form_status
             const nft = updateNftStatusResponse.nft
 
-            const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": approved }).fetch();
+            const xrpl_tx = await sails.models.xrpl_transactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": approved }).fetch();
 
             let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
 
@@ -130,7 +130,7 @@ module.exports = {
             }
 
             let xrplTransactionsAssociationOptions = { where: { id: xrpl_tx.id } }
-            const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
+            const nftPopulated = await sails.models.nft_form.findOne({ "id": req.body.id })
                 .populate('status', statusAssociationOptions)
                 .populate('xrpl_tx', xrplTransactionsAssociationOptions)
 
@@ -160,7 +160,7 @@ module.exports = {
             data: {}
         };
 
-        const nftForm = await NFTForm.findOne({ id: req.body.id })
+        const nftForm = await NFT_Form.findOne({ id: req.body.id })
         if (nftForm.current_status !== 'approved') {
             res_obj.success = false;
             res_obj.message = "NFT has not been approved";
@@ -197,7 +197,7 @@ module.exports = {
 
                     })
 
-                    const xrpl_tx = await sails.models.xrpltransactions.createEach(xrpl_tx_arr).fetch();
+                    const xrpl_tx = await sails.models.xrpl_transactions.createEach(xrpl_tx_arr).fetch();
 
                     let allEntriesHaveID = xrpl_tx.every(hasDbID);
 
@@ -214,7 +214,7 @@ module.exports = {
                     let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
                     let xrplTransactionsAssociationOptions = { where: { id: xrpl_tx_ids } }
 
-                    const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
+                    const nftPopulated = await sails.models.nft_form.findOne({ "id": req.body.id })
                         .populate('status', statusAssociationOptions)
                         .populate('xrpl_tx', xrplTransactionsAssociationOptions)
 
@@ -248,7 +248,7 @@ module.exports = {
 
         //This is supposed to be done by the public users in the Xumm App.        
 
-        const nft = await sails.models.nftform.findOne({ "id": req.body.id });
+        const nft = await sails.models.nft_form.findOne({ "id": req.body.id });
         if (nft.current_status !== 'issued') {
             res_obj.success = false;
             res_obj.message = "NFT has not been issued";
@@ -294,7 +294,7 @@ module.exports = {
         let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
         let xummAssociationOptions = { where: { id: xumm_api_payload.id } }
 
-        const nftPopulated = await sails.models.nftform.findOne({ "id": req.body.id })
+        const nftPopulated = await sails.models.nft_form.findOne({ "id": req.body.id })
             .populate('status', statusAssociationOptions)
             .populate('xumm', xummAssociationOptions)
 
@@ -314,7 +314,7 @@ module.exports = {
         };
 
 
-        const xummResponse = await sails.models.xummresponses.findOne({ nft: req.body.id, payloadStatus: 'signed' })
+        const xummResponse = await sails.models.xumm_responses.findOne({ nft: req.body.id, payloadStatus: 'signed' })
         const txBlob = xummResponse.payload.response.hex
         await verifyNFTService.run(req.body.id, txBlob, req.body.userWallet)
 
@@ -365,11 +365,11 @@ module.exports = {
 
         associationOptions.where.nft = id
 
-        const nft = await sails.models.nftform.findOne({ id: id })
+        const nft = await sails.models.nft_form.findOne({ id: id })
             .populate('status', associationOptions)
             .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
-            .populate('xummresponse', associationOptions)
+            .populate('xumm_response', associationOptions)
             .meta({ enableExperimentalDeepTargets: true })
 
         res_obj.success = true
@@ -405,18 +405,18 @@ module.exports = {
         if (req.query.id) NFTOptions.where.id = req.query.id
         if (req.query.status) NFTOptions.where.current_status = JSON.parse(req.query.status)
 
-        allNFT = await sails.models.nftform.find()
+        allNFT = await sails.models.nft_form.find()
             .where(NFTOptions.where)
             .populate('status', associationOptions)
             .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
-            .populate('xummresponse', associationOptions)
+            .populate('xumm_response', associationOptions)
             .sort(`${sortBy} ${order}`)
             .skip((page - 1) * pageSize)
             .limit(pageSize)
             .meta({ enableExperimentalDeepTargets: true })
 
-        totalNFT = await sails.models.nftform.count()
+        totalNFT = await sails.models.nft_form.count()
             .where(NFTOptions.where)
             .meta({ enableExperimentalDeepTargets: true })
 
@@ -434,7 +434,7 @@ module.exports = {
             data: {}
         };
 
-        nft = await sails.models.nftform.findOne({ id: req.query.id })
+        nft = await sails.models.nft_form.findOne({ id: req.query.id })
         const allowedToBeChanged = [
             'details.token_name',
             'details.url'
@@ -453,10 +453,12 @@ module.exports = {
         const nftUpdateValues = {
             $set: req.body
         }
-        const nftUpdated = await db.collection('nftform').findOneAndUpdate(
+        const nftUpdated = await db.collection('nft_form').findOneAndUpdate(
             { _id: objectId },
             nftUpdateValues,
             { returnOriginal: false });
+        
+        console.log(nftUpdated)
 
         if (!nftUpdated.lastErrorObject.updatedExisting) {
             res_obj.success = false
@@ -484,19 +486,19 @@ module.exports = {
         }
         associationOptions.where.nft = req.body.id
 
-        const allNFT = await sails.models.nftform.findOne({ id: req.body.id })
+        const allNFT = await sails.models.nft_form.findOne({ id: req.body.id })
             .populate('status', associationOptions)
             .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
-            .populate('xummresponse', associationOptions)
+            .populate('xumm_response', associationOptions)
             .meta({ enableExperimentalDeepTargets: true })
 
-        await sails.models.nftform.archive({ id: req.body.id })
-        await sails.models.nftformstatus.archive({ nft: req.body.id })
-        await sails.models.xrpltransactions.archive({ nft: req.body.id })
+        await sails.models.nft_form.archive({ id: req.body.id })
+        await sails.models.nft_form_status.archive({ nft: req.body.id })
+        await sails.models.xrpl_transactions.archive({ nft: req.body.id })
         await sails.models.xumm.archive({ nft: req.body.id })
-        await sails.models.xummresponses.archive({ nft: req.body.id })
-        await sails.models.nftdeliveryverification.archive({ nft: req.body.id })
+        await sails.models.xumm_responses.archive({ nft: req.body.id })
+        await sails.models.nft_claim_verification.archive({ nft: req.body.id })
 
         res_obj.success = true
         res_obj.message = "All NFT has been deleted."

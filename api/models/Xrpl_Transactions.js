@@ -1,5 +1,5 @@
 /**
- * NFTFormStatus.js
+ * Xrpl_Transactions.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -12,35 +12,28 @@ module.exports = {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-    status_success: { type: 'boolean' },
 
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
     //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
-
+    tx_details: {
+      type: "json"
+    },
 
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
+
+    nft_status: {
+      model: 'NFT_Form_Status'
+    },
+
     nft: {
-      model: 'NFTForm'
-    },
-
-    tx: {
-      collection: 'XrplTransactions',
-      via: 'nft_status'
-    },
-
-    status: {
-      model: 'StatusOptions'
-    },
-
-    user: {
-      model: 'User'
+      model: 'NFT_Form'
     }
 
-  },
+  }
 
 };
 

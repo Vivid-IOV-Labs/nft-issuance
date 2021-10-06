@@ -26,11 +26,11 @@ module.exports = {
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
 
     nft: {
-      model: 'NFTForm'
+      model: 'NFT_Form'
     },
 
     responses: {
-      collection: 'XummResponses',
+      collection: 'Xumm_Responses',
       via: 'xumm'
     },
 

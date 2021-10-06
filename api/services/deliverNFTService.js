@@ -21,7 +21,7 @@ module.exports = {
         let xummAssociationOptions = {}
 
         if (typeof userWallet === 'undefined') {
-            const xummResponses = await sails.models.xummresponses.findOne({ nft: nftId, payloadStatus: 'signed' })
+            const xummResponses = await sails.models.xumm_responses.findOne({ nft: nftId, payloadStatus: 'signed' })
             userWallet = xummResponses.payload.response.account
             xummAssociationOptions = { where: { id: xummResponses.id } }
         }
@@ -39,12 +39,12 @@ module.exports = {
         const nft_form_status = updateNftStatusResponse.nft_form_status
         const nft = updateNftStatusResponse.nft
 
-        const xrpl_tx = await sails.models.xrpltransactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": delivered }).fetch();
+        const xrpl_tx = await sails.models.xrpl_transactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": delivered }).fetch();
 
         let statusAssociationOptions = { where: { id: updateNftStatusResponse.nft_form_status.id } }
         let xrplTransactionsAssociationOptions = { where: { id: xrpl_tx.id } }
 
-        const nftPopulated = await sails.models.nftform.findOne({ "id": nftId })
+        const nftPopulated = await sails.models.nft_form.findOne({ "id": nftId })
             .populate('status', statusAssociationOptions)
             .populate('xrpl_tx', xrplTransactionsAssociationOptions)
             .populate('xumm', xummAssociationOptions);

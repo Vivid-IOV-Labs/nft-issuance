@@ -27,7 +27,7 @@ module.exports = {
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
 
     nft: {
-      model: 'NFTForm'
+      model: 'NFT_Form'
     },
 
     xumm: {

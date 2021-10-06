@@ -14,7 +14,7 @@ module.exports = {
             nft: nftId,
             verification: verify
         }
-        await sails.models.nftclaimverification.create(nftClaimVerificationNewRecord)
+        await sails.models.nft_claim_verification.create(nftClaimVerificationNewRecord)
     
         if (verify.signedBy === receiver && verify.signatureValid) {
             sails.sockets.blast('verified', {
