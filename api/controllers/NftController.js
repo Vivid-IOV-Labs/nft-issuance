@@ -316,7 +316,9 @@ module.exports = {
 
         const xummResponse = await sails.models.xumm_responses.findOne({ nft: req.body.id, payloadStatus: 'signed' })
         const txBlob = xummResponse.payload.response.hex
-        await verifyNFTService.run(req.body.id, txBlob, req.body.userWallet)
+        const verify = await verifyNFTService.run(req.body.id, txBlob, req.body.userWallet)
+
+        if (!verify.success) return _requestRes(verify.res_obj, res)
 
         res_obj = await deliverNFTService.run(req.body.id, req.body.userWallet)
 
@@ -499,7 +501,7 @@ module.exports = {
             res_obj.success = false
             res_obj.badRequest = true
             res_obj.message = message
-            
+
             return _requestRes(res_obj, res)
         }
 

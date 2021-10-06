@@ -16,11 +16,7 @@ module.exports = {
         }
         await sails.models.nft_claim_verification.create(nftClaimVerificationNewRecord)
     
-        if (verify.signedBy === receiver && verify.signatureValid) {
-            sails.sockets.blast('verified', {
-                nftId: nftId
-            })
-    
+        if (verify.signedBy === receiver && verify.signatureValid) {    
             res_obj.success = true
             res_obj.message = "NFT claim has been verified"
             
