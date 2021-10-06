@@ -18,7 +18,7 @@ module.exports = {
             }
             if (event.data.expires_in_seconds === 0) {
                 const payloadStatus = 'expired'
-                _updateXummRecord(nftId, event.data, payloadStatus)
+                _addXummResponsesRecord(nftId, event.data, payloadStatus)
                 _unlockNft(nftId)
                 sails.log.debug(`NFT has ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
                 sails.sockets.blast(payloadStatus, {
@@ -27,7 +27,7 @@ module.exports = {
             }
             if (event.data.opened === true) {
                 const payloadStatus = 'scanned'
-                _updateXummRecord(nftId, event.data, payloadStatus)
+                _addXummResponsesRecord(nftId, event.data, payloadStatus)
                 sails.log.debug(`QR code has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
                 sails.sockets.blast(payloadStatus, {
                     nftId: nftId
@@ -36,18 +36,22 @@ module.exports = {
             if (event.data.signed === true) {
                 const payloadStatus = 'signed'
                 sails.log.debug(`NFT has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
-                await _updateXummRecord(nftId, event.data, payloadStatus)
+                let xummResponsesNewRecord = await _addXummResponsesRecord(nftId, event.data, payloadStatus)
                 sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })
-                            
+
+                const txBlob = xummResponsesNewRecord.payload.response.hex
+                const receiver = xummResponsesNewRecord.payload.response.account
+                await verifyNFTService.run(nftId, txBlob, receiver)
+                
                 await deliverNFTService.run(nftId)
-                _updateXummRecord(nftId, event.data, 'delivered')
+                xummResponsesNewRecord = await _addXummResponsesRecord(nftId, event.data, 'delivered')                
             }
             if (event.data.signed === false) {
                 const payloadStatus = 'rejected'
                 sails.log.debug(`NFT has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
-                _updateXummRecord(nftId, event.data, payloadStatus)
+                _addXummResponsesRecord(nftId, event.data, payloadStatus)
                 _unlockNft(nftId)
                 sails.sockets.blast(payloadStatus, {
                     nftId: nftId
@@ -102,12 +106,8 @@ _unlockNft = async (nftId) => {
     }
 }
 
-_updateXummRecord = async (nftId, event, payloadStatus) => {
+_addXummResponsesRecord = async (nftId, event, payloadStatus) => {
     const payload = event.payload_uuidv4 ? await Sdk.payload.get(event.payload_uuidv4) : {}
-    // console.log(payload.response.account)
-    // TODO: Create new table xummResponses. Associate with xumm record. (One-to-many relathionship)
-    // Call _updateXummRecord() on each state 'rejected', 'signed' etc and add new record to xummResponse every time.
-    // xummResponses table will have 'payload', 'payloadStatus'
 
     const xumm = await sails.models.xumm.find({ nft: nftId })
         .sort('createdAt DESC')
@@ -120,4 +120,6 @@ _updateXummRecord = async (nftId, event, payloadStatus) => {
         nft: nftId,
     }
     await sails.models.xummresponses.create(xummResponsesNewRecord)
+    
+    return xummResponsesNewRecord
 }

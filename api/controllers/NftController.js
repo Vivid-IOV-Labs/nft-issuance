@@ -313,10 +313,14 @@ module.exports = {
             data: {}
         };
 
+
+        const xummResponse = await sails.models.xummresponses.findOne({ nft: req.body.id, payloadStatus: 'signed' })
+        const txBlob = xummResponse.payload.response.hex
+        await verifyNFTService.run(req.body.id, txBlob, req.body.userWallet)
+
         res_obj = await deliverNFTService.run(req.body.id, req.body.userWallet)
 
         return _requestRes(res_obj, res)
-
     },
 
     reject: async function (req, res) {
