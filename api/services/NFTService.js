@@ -9,15 +9,15 @@ const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
 
 let seqCount = 0;
 
-const textToHex = (_o) => {
+const _textToHex = (_o) => {
     return new Buffer.from(_o.text).toString('hex').toUpperCase();
 }
 
 const DOMAIN = "http://";
-const NFTDOMAIN = textToHex({ text: DOMAIN });
+const NFTDOMAIN = _textToHex({ text: DOMAIN });
 
 const DOMAINVALUE = "xnft.peerkat.live   ";
-const CURRENCY = textToHex({ text: DOMAINVALUE });
+const CURRENCY = _textToHex({ text: DOMAINVALUE });
 
 const X_url = 'wss://s.altnet.rippletest.net:51233';
 
@@ -150,7 +150,7 @@ const createTrustReceiverAndIssuer = async (_o) => {
     txList[1].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[1].Fee = txInfo.feeValue;
     txList[1].Account = _o.X_BRAND_WALLET_ADDRESS;
-    txList[1].Currency = textToHex({ text: _o.tokenName });
+    txList[1].Currency = _textToHex({ text: _o.tokenName });
 
     const xaccount = await _getXAccount(_o.X_BRAND_SEED);
 
@@ -327,5 +327,9 @@ module.exports = {
 
     txTrustSet: async () => {
         return txList[5]
+    },
+
+    textToHex: async (_o) => {
+        return _textToHex(_o)
     }
 }
