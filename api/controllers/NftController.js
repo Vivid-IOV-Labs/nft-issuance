@@ -437,7 +437,14 @@ module.exports = {
         nft = await sails.models.nft_form.findOne({ id: req.query.id })
         const allowedToBeChanged = [
             'details.token_name',
-            'details.url'
+            'details.title',
+            'details.subtitle',
+            'details.description',
+            'details.tags',
+            'details.media_url',
+            'details.categories',
+            'details.brand_name',
+            'details.transferable_copyright',
         ]
         const isRequestBodyParamsAccepted = Object.keys(req.body).every(param => allowedToBeChanged.includes(param))
 
@@ -457,7 +464,7 @@ module.exports = {
             { _id: objectId },
             nftUpdateValues,
             { returnOriginal: false });
-        
+
         console.log(nftUpdated)
 
         if (!nftUpdated.lastErrorObject.updatedExisting) {
@@ -484,21 +491,33 @@ module.exports = {
         var associationOptions = {
             where: {}
         }
-        associationOptions.where.nft = req.body.id
+        try {
+            var ids = JSON.parse(req.query.id)
+        } catch (error) {
+            let message = `id should not contain single quotes (''). Instead it should be a string like this: 
+                ["6156ca1ae406350fe66059fa", "6156ca1ae406350fe66059fv"]`
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = message
+            
+            return _requestRes(res_obj, res)
+        }
 
-        const allNFT = await sails.models.nft_form.findOne({ id: req.body.id })
+        associationOptions.where.nft = ids
+
+        const allNFT = await sails.models.nft_form.findOne({ id: ids })
             .populate('status', associationOptions)
             .populate('xrpl_tx', associationOptions)
             .populate('xumm', associationOptions)
             .populate('xumm_response', associationOptions)
             .meta({ enableExperimentalDeepTargets: true })
 
-        await sails.models.nft_form.archive({ id: req.body.id })
-        await sails.models.nft_form_status.archive({ nft: req.body.id })
-        await sails.models.xrpl_transactions.archive({ nft: req.body.id })
-        await sails.models.xumm.archive({ nft: req.body.id })
-        await sails.models.xumm_responses.archive({ nft: req.body.id })
-        await sails.models.nft_claim_verification.archive({ nft: req.body.id })
+        await sails.models.nft_form.archive({ id: ids })
+        await sails.models.nft_form_status.archive({ nft: ids })
+        await sails.models.xrpl_transactions.archive({ nft: ids })
+        await sails.models.xumm.archive({ nft: ids })
+        await sails.models.xumm_responses.archive({ nft: ids })
+        await sails.models.nft_claim_verification.archive({ nft: ids })
 
         res_obj.success = true
         res_obj.message = "All NFT has been deleted."
