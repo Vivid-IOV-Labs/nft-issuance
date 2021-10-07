@@ -56,7 +56,9 @@ module.exports = {
 
             return res.badRequest(res_obj);
         } else {
-            req.body.token_name = '0x02' + req.body.token_name.padEnd(38, ' ')
+            let token_name = req.body.token_name.padEnd(38, ' ')
+            token_name = await NFTService.textToHex({ text: token_name })
+            req.body.token_name = '0x02' + token_name
         }
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
@@ -249,12 +251,6 @@ module.exports = {
         //This is supposed to be done by the public users in the Xumm App.        
 
         const nft = await sails.models.nft_form.findOne({ "id": req.body.id });
-        if (nft.current_status !== 'issued') {
-            res_obj.success = false;
-            res_obj.message = "NFT has not been issued";
-
-            return res.badRequest(res_obj);
-        }
         if (nft.locked) {
             let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
             sails.log.info(message)
@@ -263,6 +259,12 @@ module.exports = {
             res_obj.messageStatus = 'NFT_LOCKED'
 
             return _requestRes(res_obj, res)
+        }
+        if (nft.current_status !== 'issued') {
+            res_obj.success = false;
+            res_obj.message = "NFT has not been issued";
+
+            return res.badRequest(res_obj);
         }
 
         //Prepare transaction payload for xumm users to sign and listen.
@@ -467,7 +469,6 @@ module.exports = {
             nftUpdateValues,
             { returnOriginal: false });
 
-        console.log(nftUpdated)
 
         if (!nftUpdated.lastErrorObject.updatedExisting) {
             res_obj.success = false
