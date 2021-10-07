@@ -43,8 +43,9 @@ module.exports = {
 
                 const txBlob = xummResponsesNewRecord.payload.response.hex
                 const receiver = xummResponsesNewRecord.payload.response.account
-                await verifyNFTService.run(nftId, txBlob, receiver)
-                
+                const verify = await verifyNFTService.run(nftId, txBlob, receiver)
+                if (!verify.success) return
+
                 await deliverNFTService.run(nftId)
                 xummResponsesNewRecord = await _addXummResponsesRecord(nftId, event.data, 'delivered')                
             }
