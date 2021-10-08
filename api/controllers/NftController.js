@@ -56,9 +56,10 @@ module.exports = {
 
             return res.badRequest(res_obj);
         } else {
-            let token_name = req.body.token_name.padEnd(38, ' ')
-            token_name = await NFTService.textToHex({ text: token_name })
-            req.body.token_name = '0x02' + token_name
+            let tokenName = req.body.token_name.padEnd(38, ' ')
+            req.body.token_name = tokenName
+            let tokenNameHex = await NFTService.textToHex({ text: tokenName })
+            req.body.token_name_hex = '0x02' + tokenNameHex
         }
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
@@ -459,13 +460,27 @@ module.exports = {
             'details.transferable_copyright',
         ]
         const isRequestBodyParamsAccepted = Object.keys(req.body).every(param => allowedToBeChanged.includes(param))
-
         if (!isRequestBodyParamsAccepted) {
             res_obj.success = false
             res_obj.badRequest = true
             res_obj.message = `Wrong body parameters. These parameters are allowed: ${allowedToBeChanged}`
 
             return _requestRes(res_obj, res)
+        }
+        
+        let reqTokenName = req.body['details.token_name']        
+        if (reqTokenName !== undefined) {
+            if (reqTokenName.length > 38) {
+                res_obj.success = false;
+                res_obj.message = "token_name should not have more than 38 characters";
+
+                return res.badRequest(res_obj);
+            } else {
+                let tokenName = reqTokenName.padEnd(38, ' ')
+                req.body["details.token_name"] = tokenName
+                let tokenNameHex = await NFTService.textToHex({ text: tokenName })
+                req.body["details.token_name_hex"] = '0x02' + tokenNameHex
+            }    
         }
 
         const objectId = new ObjectId(req.query.id)
@@ -476,7 +491,6 @@ module.exports = {
             { _id: objectId },
             nftUpdateValues,
             { returnOriginal: false });
-
 
         if (!nftUpdated.lastErrorObject.updatedExisting) {
             res_obj.success = false
