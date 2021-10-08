@@ -33,7 +33,7 @@ module.exports = {
     },
 
     status: {
-      model: 'Status_Options'
+      model: 'NFT_Status_Options'
     },
 
     user: {

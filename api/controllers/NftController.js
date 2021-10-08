@@ -64,11 +64,11 @@ module.exports = {
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
 
-            const status_options = await sails.models.status_options.findOne({ name: "created" });
+            const nft_status_options = await sails.models.nft_status_options.findOne({ name: "created" });
 
-            const nft = await sails.models.nft_form.create({ "details": req.body, "current_status": status_options.name }).fetch();
+            const nft = await sails.models.nft_form.create({ "details": req.body, "current_status": nft_status_options.name }).fetch();
 
-            const nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+            const nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": nft_status_options.id }).fetch();
 
             const xrpl_tx = await sails.models.xrpl_transactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": created }).fetch();
 
