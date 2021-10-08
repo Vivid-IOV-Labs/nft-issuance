@@ -285,7 +285,7 @@ module.exports = {
             return _requestRes(res_obj, res)
         }
 
-        const updateNftStatusResponse = await NFTFormService.updateStatus('claimed', req.body.id)
+        const updateNftStatusResponse = await NFTFormService.updateStatus('claiming', req.body.id)
         if (!updateNftStatusResponse.success) {
             res_obj.success = false;
             res_obj.message = "NFT does not exist";
