@@ -23,6 +23,10 @@ module.exports = {
             return res_obj
         }
 
+        sails.sockets.blast('unverified', {
+            nftId: nftId
+        })
+
         res_obj.success = false;
         res_obj.message = "Could not verify NFT claim";
         sails.log.error(res_obj.message)
