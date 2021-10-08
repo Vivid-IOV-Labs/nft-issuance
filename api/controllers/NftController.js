@@ -56,19 +56,20 @@ module.exports = {
 
             return res.badRequest(res_obj);
         } else {
-            let token_name = req.body.token_name.padEnd(38, ' ')
-            token_name = await NFTService.textToHex({ text: token_name })
-            req.body.token_name = '0x02' + token_name
+            let tokenName = req.body.token_name.padEnd(38, ' ')
+            req.body.token_name = tokenName
+            let tokenNameHex = await NFTService.textToHex({ text: tokenName })
+            req.body.token_name_hex = '0x02' + tokenNameHex
         }
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED })
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
 
-            const status_options = await sails.models.status_options.findOne({ name: "created" });
+            const nft_status_options = await sails.models.nft_status_options.findOne({ name: "created" });
 
-            const nft = await sails.models.nft_form.create({ "details": req.body, "current_status": status_options.name }).fetch();
+            const nft = await sails.models.nft_form.create({ "details": req.body, "current_status": nft_status_options.name }).fetch();
 
-            const nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+            const nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": nft_status_options.id }).fetch();
 
             const xrpl_tx = await sails.models.xrpl_transactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": created }).fetch();
 
@@ -285,7 +286,7 @@ module.exports = {
             return _requestRes(res_obj, res)
         }
 
-        const updateNftStatusResponse = await NFTFormService.updateStatus('claimed', req.body.id)
+        const updateNftStatusResponse = await NFTFormService.updateStatus('claiming', req.body.id)
         if (!updateNftStatusResponse.success) {
             res_obj.success = false;
             res_obj.message = "NFT does not exist";
@@ -439,6 +440,14 @@ module.exports = {
         };
 
         nft = await sails.models.nft_form.findOne({ id: req.query.id })
+        if (nft.current_status !== 'claiming') {
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = `Could not update NFT. NFT is not in 'claiming' status. id: ${req.query.id}`
+            res_obj.data = { nft }
+
+            return _requestRes(res_obj, res)
+        }
         const allowedToBeChanged = [
             'details.token_name',
             'details.title',
@@ -451,13 +460,27 @@ module.exports = {
             'details.transferable_copyright',
         ]
         const isRequestBodyParamsAccepted = Object.keys(req.body).every(param => allowedToBeChanged.includes(param))
-
         if (!isRequestBodyParamsAccepted) {
             res_obj.success = false
             res_obj.badRequest = true
             res_obj.message = `Wrong body parameters. These parameters are allowed: ${allowedToBeChanged}`
 
             return _requestRes(res_obj, res)
+        }
+        
+        let reqTokenName = req.body['details.token_name']        
+        if (reqTokenName !== undefined) {
+            if (reqTokenName.length > 38) {
+                res_obj.success = false;
+                res_obj.message = "token_name should not have more than 38 characters";
+
+                return res.badRequest(res_obj);
+            } else {
+                let tokenName = reqTokenName.padEnd(38, ' ')
+                req.body["details.token_name"] = tokenName
+                let tokenNameHex = await NFTService.textToHex({ text: tokenName })
+                req.body["details.token_name_hex"] = '0x02' + tokenNameHex
+            }    
         }
 
         const objectId = new ObjectId(req.query.id)
@@ -468,7 +491,6 @@ module.exports = {
             { _id: objectId },
             nftUpdateValues,
             { returnOriginal: false });
-
 
         if (!nftUpdated.lastErrorObject.updatedExisting) {
             res_obj.success = false

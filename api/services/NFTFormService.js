@@ -13,7 +13,7 @@ module.exports = {
             message: ""
         };
 
-        const status_options = await sails.models.status_options.findOne({ name: currentStatus });
+        const nft_status_options = await sails.models.nft_status_options.findOne({ name: currentStatus });
 
         const nft = await sails.models.nft_form.findOne({ "id": nftId });
 
@@ -31,14 +31,14 @@ module.exports = {
             { _id: objectId },
             {
                 $set: {
-                    "current_status": status_options.name,
+                    "current_status": nft_status_options.name,
                     "previous_status": nft.current_status
                 }
             },
             { returnOriginal: false }
         );
 
-        res_obj.nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": status_options.id }).fetch();
+        res_obj.nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": nft_status_options.id }).fetch();
         res_obj.nft = nftUpdated
 
         return res_obj
