@@ -439,6 +439,14 @@ module.exports = {
         };
 
         nft = await sails.models.nft_form.findOne({ id: req.query.id })
+        if (nft.current_status !== 'claiming') {
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = `Could not update NFT. NFT is not in 'claiming' status. id: ${req.query.id}`
+            res_obj.data = { nft }
+
+            return _requestRes(res_obj, res)
+        }
         const allowedToBeChanged = [
             'details.token_name',
             'details.title',
