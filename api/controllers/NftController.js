@@ -440,14 +440,16 @@ module.exports = {
         };
 
         nft = await sails.models.nft_form.findOne({ id: req.query.id })
-        if (nft.current_status !== 'claiming') {
+        if (!((nft.current_status === 'created') || (nft.current_status === 'rejected' && nft.previous_status === 'created'))) {
             res_obj.success = false
             res_obj.badRequest = true
-            res_obj.message = `Could not update NFT. NFT is not in 'claiming' status. id: ${req.query.id}`
+            res_obj.message = `Could not update NFT. Can only update NFT (if current_status === 'created') OR ` +
+                `(if current_status === 'rejected' AND previous_status === 'created'). id: ${req.query.id}`
             res_obj.data = { nft }
 
             return _requestRes(res_obj, res)
         }
+
         const allowedToBeChanged = [
             'details.token_name',
             'details.title',
@@ -467,8 +469,8 @@ module.exports = {
 
             return _requestRes(res_obj, res)
         }
-        
-        let reqTokenName = req.body['details.token_name']        
+
+        let reqTokenName = req.body['details.token_name']
         if (reqTokenName !== undefined) {
             if (reqTokenName.length > 38) {
                 res_obj.success = false;
@@ -480,7 +482,7 @@ module.exports = {
                 req.body["details.token_name"] = tokenName
                 let tokenNameHex = await NFTService.textToHex({ text: tokenName })
                 req.body["details.token_name_hex"] = '0x02' + tokenNameHex
-            }    
+            }
         }
 
         const objectId = new ObjectId(req.query.id)
