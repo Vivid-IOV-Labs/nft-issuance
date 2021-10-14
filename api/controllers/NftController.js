@@ -386,6 +386,21 @@ module.exports = {
     },
 
     find: async function (req, res) {
+        /* 
+          Get NFT records from database.
+          Eg GET request: /nft
+    
+          Optional parameters:
+            sortBy            (sort by a parameter of the nft_form record. Eg 'createdAt', 'details.title')
+            order             ('asc', 'desc'. Default: asc)
+            pageSize          (Number of items per page. Default: 10)
+            page              (Number of page based on the pageSize. Default: 1)
+            locked            (Filter by 'locked'. Eg 'true', 'false')
+            status            (Filter by 'current_status'. Eg ["approved", "delivered"])
+            id                (Filter by 'id'. Eg: 615cb190475bed782d3c19ff)
+            
+            Eg /nft?status=["approved", "delivered"]&id=615cb190475bed782d3c19ff&locked=true
+        */
 
         let res_obj = {
             success: false,
@@ -409,6 +424,7 @@ module.exports = {
 
         if (req.query.id) NFTOptions.where.id = req.query.id
         if (req.query.status) NFTOptions.where.current_status = JSON.parse(req.query.status)
+        if (!!req.query.locked) NFTOptions.where.locked = req.query.locked
 
         allNFT = await sails.models.nft_form.find()
             .where(NFTOptions.where)
