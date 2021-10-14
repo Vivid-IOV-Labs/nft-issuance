@@ -13,9 +13,6 @@ const _textToHex = (_o) => {
     return new Buffer.from(_o.text).toString('hex').toUpperCase();
 }
 
-const DOMAIN = "http://";
-const NFTDOMAIN = _textToHex({ text: DOMAIN });
-
 const DOMAINVALUE = "xnft.peerkat.live   ";
 const CURRENCY = _textToHex({ text: DOMAINVALUE });
 
@@ -32,7 +29,7 @@ let txList = [{
     "TransactionType": "AccountSet",
     "Account": X_ISSUER_WALLET_ADDRESS,
     "SetFlag": 8,
-    "Domain": NFTDOMAIN
+    "Domain": ""
 }, {
     "TransactionType": "TrustSet",
     "Account": "rReceivingHotWallet...",
@@ -253,12 +250,15 @@ const sendNFTokenToUser = async (_o) => {
 
 const accountSet = async (_o) => {
     //Account setup
-
+    const DOMAIN = `${_o.domain}://`;
+    const NFTDOMAIN = _textToHex({ text: DOMAIN });
+    
     const txInfo = await _getAccountInfoAndFee(_o.X_ISSUER_WALLET_ADDRESS);
     const xaccount = await _getXAccount(_o.X_ISSUER_SEED);
 
     txList[0].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[0].Fee = txInfo.feeValue;
+    txList[0].Domain = _textToHex({ text: NFTDOMAIN })
 
     const txObj = await _signTx({ tx: txList[0], xaccount: xaccount });
 
