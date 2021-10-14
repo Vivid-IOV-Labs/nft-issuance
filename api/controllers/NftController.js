@@ -385,7 +385,6 @@ module.exports = {
             res_obj.success = false
             res_obj.badRequest = true
             res_obj.message = `NFT is locked. id: ${id}`
-            res_obj.data = { nft }
     
             return _requestRes(res_obj, res)  
         }
