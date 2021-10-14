@@ -64,9 +64,9 @@ module.exports = {
             req.body.token_name_hex = '0x02' + tokenNameHex
         }
         
-        const { domain } = req.body
+        const { domain_protocol } = req.body
 
-        const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain })
+        const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol })
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
 
             const nft_status_options = await sails.models.nft_status_options.findOne({ name: "created" });

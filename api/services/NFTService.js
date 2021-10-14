@@ -250,7 +250,7 @@ const sendNFTokenToUser = async (_o) => {
 
 const accountSet = async (_o) => {
     //Account setup
-    const DOMAIN = `${_o.domain}://`;
+    const DOMAIN = `${_o.domain_protocol}://`;
     const NFTDOMAIN = _textToHex({ text: DOMAIN });
     
     const txInfo = await _getAccountInfoAndFee(_o.X_ISSUER_WALLET_ADDRESS);
