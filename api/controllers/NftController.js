@@ -19,9 +19,11 @@ const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
 const _requestRes = async (_xresp, res) => {
 
     if (_xresp.error) {
+        delete _xresp.error
         sails.log.error(_xresp.message)
         return res.serverError(_xresp);
     } else if (_xresp.badRequest) {
+        delete _xresp.badRequest
         sails.log.info(_xresp.message)
         return res.badRequest(_xresp);
     } else if (_xresp.messageStatus === 'NFT_LOCKED') {
@@ -376,6 +378,15 @@ module.exports = {
             .populate('xumm', associationOptions)
             .populate('xumm_response', associationOptions)
             .meta({ enableExperimentalDeepTargets: true })
+
+        if (nft.locked) {
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = `NFT is locked. id: ${id}`
+            res_obj.data = { nft }
+    
+            return _requestRes(res_obj, res)  
+        }
 
         res_obj.success = true
         res_obj.message = `NFT fetched. id: ${id}`
