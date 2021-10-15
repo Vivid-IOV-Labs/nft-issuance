@@ -51,27 +51,27 @@ module.exports = {
             message: "",
             data: {}
         };
+        
+        let details = req.body
 
-        if (req.body.token_name.length > 38) {
+        if (req.body.token_name.length > 20) {
             res_obj.success = false;
-            res_obj.message = "token_name should not have more than 38 characters";
+            res_obj.message = "token_name should not have more than 20 characters";
 
             return res.badRequest(res_obj);
-        } else {
-            let tokenName = req.body.token_name.padEnd(38, ' ')
-            req.body.token_name = tokenName
-            let tokenNameHex = await NFTService.textToHex({ text: tokenName })
-            req.body.token_name_hex = '0x02' + tokenNameHex
         }
         
         const { domain_protocol } = req.body
-
+        
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol })
+        details.currency = await NFTService.generateCurrencyCode({ tokenName: req.body.token_name })
+
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
 
             const nft_status_options = await sails.models.nft_status_options.findOne({ name: "created" });
 
-            const nft = await sails.models.nft_form.create({ "details": req.body, "current_status": nft_status_options.name }).fetch();
+            const nft = await sails.models.nft_form.create({ "details": details, "current_status": nft_status_options.name })
+                .fetch();
 
             const nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": nft_status_options.id }).fetch();
 
@@ -110,8 +110,9 @@ module.exports = {
         };
 
         const nft = await sails.models.nft_form.findOne({ "id": req.body.id })
-        const tokenName = nft.details.token_name
-        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, tokenName });
+        const { currency } = nft.details
+
+        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, currency });
 
         if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
             const updateNftStatusResponse = await NFTFormService.updateStatus('approved', req.body.id)
@@ -175,7 +176,9 @@ module.exports = {
             return res.badRequest(res_obj);
         }
 
-        const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED }, { X_BRAND_WALLET_ADDRESS })
+        const { currency } = nftForm.details
+
+        const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, currency }, { X_BRAND_WALLET_ADDRESS })
 
         //If the XRPL transactions where an array of transactions 
         if (Array.isArray(issued)) {
@@ -271,9 +274,10 @@ module.exports = {
 
             return res.badRequest(res_obj);
         }
-
+        
         //Prepare transaction payload for xumm users to sign and listen.
-        const txTrustSet = await NFTService.txTrustSet()
+        const { currency } = nft.details
+        const txTrustSet = await NFTService.txTrustSet({ currency })
         const claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
 
         const newXummRecord = {
@@ -436,7 +440,7 @@ module.exports = {
 
         if (req.query.id) NFTOptions.where.id = req.query.id
         if (req.query.status) NFTOptions.where.current_status = JSON.parse(req.query.status)
-        if (!!req.query.locked) NFTOptions.where.locked = req.query.locked
+        NFTOptions.where.locked = req.query.locked || false
 
         allNFT = await sails.models.nft_form.find()
             .where(NFTOptions.where)
@@ -488,29 +492,49 @@ module.exports = {
             'details.categories',
             'details.brand_name',
             'details.transferable_copyright',
+            'details.domain_protocol',
         ]
-        const isRequestBodyParamsAccepted = Object.keys(req.body).every(param => allowedToBeChanged.includes(param))
-        if (!isRequestBodyParamsAccepted) {
+        const isAcceptedReqBodyParams = Object.keys(req.body).every(param => allowedToBeChanged.includes(param))
+        if (!isAcceptedReqBodyParams) {
             res_obj.success = false
             res_obj.badRequest = true
             res_obj.message = `Wrong body parameters. These parameters are allowed: ${allowedToBeChanged}`
 
             return _requestRes(res_obj, res)
         }
-
-        let reqTokenName = req.body['details.token_name']
-        if (reqTokenName !== undefined) {
-            if (reqTokenName.length > 38) {
+        
+        const reqTokenName = req.body['details.token_name']
+        const tokenName = nft.details.token_name
+        if ( reqTokenName !== undefined && 
+            reqTokenName !== tokenName ) {
+            if (reqTokenName.length > 20) {
                 res_obj.success = false;
-                res_obj.message = "token_name should not have more than 38 characters";
+                res_obj.badRequest = true
+                res_obj.message = "token_name should not have more than 20 characters";
 
-                return res.badRequest(res_obj);
-            } else {
-                let tokenName = reqTokenName.padEnd(38, ' ')
-                req.body["details.token_name"] = tokenName
-                let tokenNameHex = await NFTService.textToHex({ text: tokenName })
-                req.body["details.token_name_hex"] = '0x02' + tokenNameHex
+                return _requestRes(res_obj, res);
             }
+            req.body['currency'] = await NFTService.generateCurrencyCode({ tokenName: reqTokenName })
+        }
+        
+        const allowedDomainProtocols = [
+            'http',
+            'https',
+            'ipfs'
+        ]
+        let reqDomainProtocol = req.body['domain_protocol']
+        let domainProtocol = nft.details.domain_protocol
+        if ( reqDomainProtocol !== undefined && 
+            reqDomainProtocol !== domainProtocol ) {
+            const isAcceptedReqDomainProtocol = allowedDomainProtocols.includes(reqDomainProtocol)
+            if (!isAcceptedReqDomainProtocol) {
+                res_obj.success = false
+                res_obj.badRequest = true
+                res_obj.message = `Wrong domain_protocol value. These values are allowed: ${allowedDomainProtocols}`
+    
+                return _requestRes(res_obj, res)    
+            }
+            await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, reqDomainProtocol })
         }
 
         const objectId = new ObjectId(req.query.id)
