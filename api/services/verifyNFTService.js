@@ -23,7 +23,7 @@ module.exports = {
             return res_obj
         }
 
-        NFTFormService.updateStatus('issued', nftId)
+        NFTFormService.revertStatus(nftId)
         sails.sockets.blast('unverified', {
             nftId: nftId
         })
