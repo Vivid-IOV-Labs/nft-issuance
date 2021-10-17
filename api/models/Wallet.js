@@ -27,8 +27,8 @@ module.exports = {
       via: 'wallet'
     },
 
-    nft_user: {
-      collection:'NFT_Form_User',
+    nft: {
+      collection:'NFT_Form',
       via: 'wallet'
     }
 

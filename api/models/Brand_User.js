@@ -22,8 +22,8 @@ module.exports = {
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-    nft_user: {
-      collection: 'NFT_Form_User',
+    nft: {
+      collection: 'NFT_Form',
       via: 'brand'
     },
 
@@ -39,6 +39,11 @@ module.exports = {
 
     organization: {
       model: 'Organization'
+    },
+
+    status: {
+      model: 'NFT_Form_Status',
+      unique: true
     },
 
 

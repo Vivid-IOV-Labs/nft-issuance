@@ -53,9 +53,20 @@ module.exports = {
     nft_claim_verification: {
       collection: 'NFT_Claim_Verification',
       via: 'nft'
-    }
+    },
 
+    brand: {
+      model: 'Brand_User'
+    },
 
+    wallet: {
+      model: 'Wallet',
+      unique: true
+    },
+
+    organization: {
+      model: 'Organization'
+    },
 
   },
 

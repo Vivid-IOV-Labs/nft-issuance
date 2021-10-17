@@ -27,8 +27,8 @@ module.exports = {
       via: 'organization'
     },
 
-    nft_user: {
-      collection: 'NFT_Form_User',
+    nft: {
+      collection: 'NFT_Form',
       via: 'organization'
     },
 
@@ -36,6 +36,16 @@ module.exports = {
       model: 'Address',
       unique: true
     },
+
+    campains: {
+      collection: 'Campain',
+      via: 'organization'
+    },
+
+    collections: {
+      collection: 'NFT_Collection',
+      via: 'organization'
+    }
 
   },
 

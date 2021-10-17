@@ -1,12 +1,13 @@
 /**
- * NFT_Form_User.js
+ * Campain.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
-module.exports = {
+ module.exports = {
 
+  schema: false,
   attributes: {
 
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
@@ -22,18 +23,16 @@ module.exports = {
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-    brand: {
-      model: 'Brand_User'
-    },
 
-    wallet: {
-      model: 'Wallet',
-      unique: true
+    campains: {
+      collection: 'NFT_Collection',
+      via: 'collections'
     },
 
     organization: {
       model: 'Organization'
     },
+
 
   },
 
