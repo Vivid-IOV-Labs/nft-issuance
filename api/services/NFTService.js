@@ -13,11 +13,6 @@ const _textToHex = (_o) => {
     return new Buffer.from(_o.text).toString('hex').toUpperCase();
 }
 
-const DOMAIN = "http://";
-const NFTDOMAIN = _textToHex({ text: DOMAIN });
-
-const DOMAINVALUE = "xnft.peerkat.live   ";
-const CURRENCY = _textToHex({ text: DOMAINVALUE });
 
 const X_url = 'wss://s.altnet.rippletest.net:51233';
 
@@ -32,13 +27,13 @@ let txList = [{
     "TransactionType": "AccountSet",
     "Account": X_ISSUER_WALLET_ADDRESS,
     "SetFlag": 8,
-    "Domain": NFTDOMAIN
+    "Domain": "NFT_DOMAIN"
 }, {
     "TransactionType": "TrustSet",
     "Account": "rReceivingHotWallet...",
     "Flags": 131072,
     "LimitAmount": {
-        "currency": CURRENCY,
+        "currency": "CURRENCY",
         "issuer": X_ISSUER_WALLET_ADDRESS,
         "value": "1000000000000000e-96"
     }
@@ -48,7 +43,7 @@ let txList = [{
     "Account": X_ISSUER_WALLET_ADDRESS,
     "Destination": "rReceivingHotWallet...",
     "Amount": {
-        "currency": CURRENCY,
+        "currency": "CURRENCY",
         "issuer": X_ISSUER_WALLET_ADDRESS,
         "value": "1000000000000000e-96"
     }
@@ -67,7 +62,7 @@ let txList = [{
     //"Account": "rFriendToReceiveNFT...",
     "Flags": 131072,
     "LimitAmount": {
-        "currency": CURRENCY,
+        "currency": "CURRENCY",
         "issuer": X_ISSUER_WALLET_ADDRESS,
         "value": "1000000000000000e-96"
     }
@@ -76,7 +71,7 @@ let txList = [{
     "Account": "rReceivingHotWallet...",
     "Destination": "rFriendToReceiveNFT...",
     "Amount": {
-        "currency": CURRENCY,
+        "currency": "CURRENCY",
         "issuer": X_ISSUER_WALLET_ADDRESS,
         "value": "1000000000000000e-96"
     }
@@ -150,7 +145,7 @@ const createTrustReceiverAndIssuer = async (_o) => {
     txList[1].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[1].Fee = txInfo.feeValue;
     txList[1].Account = _o.X_BRAND_WALLET_ADDRESS;
-    txList[1].Currency = _textToHex({ text: _o.tokenName });
+    txList[1].LimitAmount.currency = _o.currency;
 
     const xaccount = await _getXAccount(_o.X_BRAND_SEED);
 
@@ -172,6 +167,7 @@ const issueNFToken = async (_o, _p) => {
     txList[2].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[2].Destination = _p.X_BRAND_WALLET_ADDRESS;
     txList[2].Fee = txInfo.feeValue;//fee;
+    txList[2].Amount.currency = _o.currency;
 
     const txObj = await _signTx({ tx: txList[2], xaccount: xaccount });
 
@@ -242,7 +238,8 @@ const sendNFTokenToUser = async (_o) => {
     txList[6].Account = _o.X_BRAND_WALLET_ADDRESS;
     txList[6].Destination = _o.X_USER_WALLET_ADDRESS;
     txList[6].Fee = txInfo.feeValue;
-
+    txList[6].Amount.currency = _o.currency;
+    
     const txObj = await _signTx({ tx: txList[6], xaccount: xaccount });
 
     const xresp = await _sendTx({ command: 'submit', "tx_blob": txObj.signedTransaction });
@@ -253,12 +250,15 @@ const sendNFTokenToUser = async (_o) => {
 
 const accountSet = async (_o) => {
     //Account setup
-
+    const DOMAIN = `${_o.domain_protocol}://`;
+    const NFTDOMAIN = _textToHex({ text: DOMAIN });
+    
     const txInfo = await _getAccountInfoAndFee(_o.X_ISSUER_WALLET_ADDRESS);
     const xaccount = await _getXAccount(_o.X_ISSUER_SEED);
 
     txList[0].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[0].Fee = txInfo.feeValue;
+    txList[0].Domain = NFTDOMAIN;
 
     const txObj = await _signTx({ tx: txList[0], xaccount: xaccount });
 
@@ -325,11 +325,22 @@ module.exports = {
         return sendNFTokenToUserResponse;
     },
 
-    txTrustSet: async () => {
+    txTrustSet: async (_o) => {
+        txList[5].LimitAmount.currency = _o.currency;
+
         return txList[5]
     },
 
     textToHex: async (_o) => {
         return _textToHex(_o)
+    },
+    
+    generateCurrencyCode: async(_o) => {
+        let domainValue = _o.tokenName.padEnd(20, ' ');
+    
+        // let currency = '02' + _textToHex({ text: domainValue });
+        let currency = _textToHex({ text: domainValue });
+
+        return currency
     }
 }

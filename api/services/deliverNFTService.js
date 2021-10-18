@@ -26,7 +26,11 @@ module.exports = {
             xummAssociationOptions = { where: { id: xummResponses.id } }
         }
 
-        const delivered = await NFTService.deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, X_USER_WALLET_ADDRESS: userWallet });
+        let nft = await sails.models.nft_form.findOne({ "id": nftId })
+        const { currency } = nft.details
+
+        const delivered = await NFTService.deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, 
+            X_USER_WALLET_ADDRESS: userWallet, currency });
 
         const updateNftStatusResponse = await NFTFormService.updateStatus('delivered', nftId)
         if (!updateNftStatusResponse.success) {
@@ -37,7 +41,7 @@ module.exports = {
         }
 
         const nft_form_status = updateNftStatusResponse.nft_form_status
-        const nft = updateNftStatusResponse.nft
+        nft = updateNftStatusResponse.nft
 
         const xrpl_tx = await sails.models.xrpl_transactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": delivered }).fetch();
 
