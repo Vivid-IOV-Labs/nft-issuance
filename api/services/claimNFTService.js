@@ -20,7 +20,7 @@ module.exports = {
                 const payloadStatus = 'expired'
                 _addXummResponsesRecord(nftId, event.data, payloadStatus)
                 _unlockNft(nftId)
-                NFTFormService.updateStatus('issued', nftId)
+                NFTFormService.revertStatus(nftId)
                 sails.log.debug(`NFT has ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
                 sails.sockets.blast(payloadStatus, {
                     nftId: nftId
@@ -55,7 +55,7 @@ module.exports = {
                 sails.log.debug(`NFT has been ${payloadStatus}. nftId: ${nftId}, payloadEventId: ${payloadEventId}`)
                 _addXummResponsesRecord(nftId, event.data, payloadStatus)
                 _unlockNft(nftId)
-                NFTFormService.updateStatus('issued', nftId)
+                NFTFormService.revertStatus(nftId)
                 sails.sockets.blast(payloadStatus, {
                     nftId: nftId
                 })

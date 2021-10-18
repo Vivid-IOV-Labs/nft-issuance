@@ -3,7 +3,7 @@ var ObjectId = require('mongodb').ObjectId;
 module.exports = {
     updateStatus: async (currentStatus, nftId) => {
         /* 
-        Update current_status and previous_status in NFT_Form table
+            Update current_status and previous_status in NFT_Form table
         */
        
         var db = sails.getDatastore().manager;
@@ -42,5 +42,26 @@ module.exports = {
         res_obj.nft = nftUpdated.value
 
         return res_obj
-    }
+    },
+    
+    revertStatus: async (nftId) => {
+        /* 
+            Revert current_status to previous_status in NFT_Form table
+        */
+
+        let res_obj = {
+            success: false,
+            message: ""
+        };
+
+        const nft = await sails.models.nft_form.findOne({ id: nftId });
+        if (!nft) {
+            res_obj.success = false;
+            res_obj.message = "NFT does not exist";
+
+            return res_obj;
+        }
+
+        module.exports.updateStatus(nft.previous_status, nftId)
+     }
 }
