@@ -1,18 +1,18 @@
 /**
- * NFT_Form_Status.js
+ * Campain.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
-module.exports = {
+ module.exports = {
 
+  schema: false,
   attributes: {
 
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-    status_success: { type: 'boolean' },
 
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
@@ -23,27 +23,16 @@ module.exports = {
     //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-    nft: {
-      model: 'NFT_Form'
+
+    campains: {
+      collection: 'NFT_Collection',
+      via: 'collections'
     },
 
-    tx: {
-      collection: 'Xrpl_Transactions',
-      via: 'nft_status'
+    organization: {
+      model: 'Organization'
     },
 
-    status: {
-      model: 'NFT_Status_Options'
-    },
-
-    user: {
-      model: 'User'
-    },
-
-    brand: {
-      collection:'Brand_User',
-      via: 'status'
-    },
 
   },
 
