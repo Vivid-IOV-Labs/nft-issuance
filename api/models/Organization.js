@@ -37,8 +37,8 @@ module.exports = {
       unique: true
     },
 
-    campains: {
-      collection: 'Campain',
+    campaigns: {
+      collection: 'Campaign',
       via: 'organization'
     },
 

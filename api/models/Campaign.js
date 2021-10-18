@@ -1,5 +1,5 @@
 /**
- * Campain.js
+ * Campaign.js
  *
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
@@ -24,7 +24,7 @@
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
 
-    campains: {
+    campaigns: {
       collection: 'NFT_Collection',
       via: 'collections'
     },

@@ -25,8 +25,8 @@
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
 
     collections: {
-      collection: 'Campain',
-      via: 'campains'
+      collection: 'Campaign',
+      via: 'campaigns'
     },
 
     organization: {
