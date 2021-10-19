@@ -64,7 +64,7 @@ module.exports = {
         const { domain_protocol } = req.body
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol })
-        details.currency = await NFTService.generateCurrencyCode({ tokenName: req.body.token_name })
+        const currency = await NFTService.generateCurrencyCode({ tokenName: req.body.token_name })
 
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
 
@@ -72,6 +72,8 @@ module.exports = {
 
             const nft = await sails.models.nft_form.create({ "details": details, "current_status": nft_status_options.name })
                 .fetch();
+
+            await sails.models.nft_currency.create({ currency, nft: nft.id });
 
             const nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": nft_status_options.id }).fetch();
 
@@ -110,7 +112,8 @@ module.exports = {
         };
 
         const nft = await sails.models.nft_form.findOne({ "id": req.body.id })
-        const { currency } = nft.details
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active:true })
+        const { currency } = nftCurrency
 
         const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, currency });
 
@@ -176,7 +179,8 @@ module.exports = {
             return res.badRequest(res_obj);
         }
 
-        const { currency } = nftForm.details
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftForm.id, active:true })
+        const { currency } = nftCurrency
 
         const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, currency }, { X_BRAND_WALLET_ADDRESS })
 
@@ -276,7 +280,9 @@ module.exports = {
         }
 
         //Prepare transaction payload for xumm users to sign and listen.
-        const { currency } = nft.details
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active:true })
+        const { currency } = nftCurrency
+        
         const txTrustSet = await NFTService.txTrustSet({ currency })
         const claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
 
@@ -514,7 +520,9 @@ module.exports = {
 
                 return _requestRes(res_obj, res);
             }
-            req.body.details['currency'] = await NFTService.generateCurrencyCode({ tokenName: reqTokenName })
+            const currency = await NFTService.generateCurrencyCode({ tokenName: reqTokenName })
+            await NFTService.deactivateCurrency({ nftId: nft.id })
+            await sails.models.nft_currency.create({ currency, nft: nft.id });
         }
 
         const allowedDomainProtocols = [
