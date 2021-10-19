@@ -51,7 +51,7 @@ module.exports = {
             message: "",
             data: {}
         };
-        
+
         let details = req.body
 
         if (req.body.token_name.length > 20) {
@@ -60,9 +60,9 @@ module.exports = {
 
             return res.badRequest(res_obj);
         }
-        
+
         const { domain_protocol } = req.body
-        
+
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol })
         details.currency = await NFTService.generateCurrencyCode({ tokenName: req.body.token_name })
 
@@ -274,7 +274,7 @@ module.exports = {
 
             return res.badRequest(res_obj);
         }
-        
+
         //Prepare transaction payload for xumm users to sign and listen.
         const { currency } = nft.details
         const txTrustSet = await NFTService.txTrustSet({ currency })
@@ -389,8 +389,8 @@ module.exports = {
             res_obj.success = false
             res_obj.badRequest = true
             res_obj.message = `NFT is locked. id: ${id}`
-    
-            return _requestRes(res_obj, res)  
+
+            return _requestRes(res_obj, res)
         }
 
         res_obj.success = true
@@ -483,18 +483,18 @@ module.exports = {
         }
 
         const allowedToBeChanged = [
-            'details.token_name',
-            'details.title',
-            'details.subtitle',
-            'details.description',
-            'details.tags',
-            'details.media_url',
-            'details.categories',
-            'details.brand_name',
-            'details.transferable_copyright',
-            'details.domain_protocol',
+            'token_name',
+            'title',
+            'subtitle',
+            'description',
+            'tags',
+            'categories',
+            'brand_name',
+            'transferable_copyright',
+            'domain_protocol',
         ]
-        const isAcceptedReqBodyParams = Object.keys(req.body).every(param => allowedToBeChanged.includes(param))
+
+        const isAcceptedReqBodyParams = Object.keys(req.body.details).every(param => allowedToBeChanged.includes(param))
         if (!isAcceptedReqBodyParams) {
             res_obj.success = false
             res_obj.badRequest = true
@@ -502,11 +502,11 @@ module.exports = {
 
             return _requestRes(res_obj, res)
         }
-        
-        const reqTokenName = req.body['details.token_name']
+
+        const reqTokenName = req.body.details['token_name']
         const tokenName = nft.details.token_name
-        if ( reqTokenName !== undefined && 
-            reqTokenName !== tokenName ) {
+        if (reqTokenName !== undefined &&
+            reqTokenName !== tokenName) {
             if (reqTokenName.length > 20) {
                 res_obj.success = false;
                 res_obj.badRequest = true
@@ -514,32 +514,32 @@ module.exports = {
 
                 return _requestRes(res_obj, res);
             }
-            req.body['currency'] = await NFTService.generateCurrencyCode({ tokenName: reqTokenName })
+            req.body.details['currency'] = await NFTService.generateCurrencyCode({ tokenName: reqTokenName })
         }
-        
+
         const allowedDomainProtocols = [
             'http',
             'https',
             'ipfs'
         ]
-        let reqDomainProtocol = req.body['domain_protocol']
+        let reqDomainProtocol = req.body.details['domain_protocol']
         let domainProtocol = nft.details.domain_protocol
-        if ( reqDomainProtocol !== undefined && 
-            reqDomainProtocol !== domainProtocol ) {
+        if (reqDomainProtocol !== undefined &&
+            reqDomainProtocol !== domainProtocol) {
             const isAcceptedReqDomainProtocol = allowedDomainProtocols.includes(reqDomainProtocol)
             if (!isAcceptedReqDomainProtocol) {
                 res_obj.success = false
                 res_obj.badRequest = true
                 res_obj.message = `Wrong domain_protocol value. These values are allowed: ${allowedDomainProtocols}`
-    
-                return _requestRes(res_obj, res)    
+
+                return _requestRes(res_obj, res)
             }
             await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, reqDomainProtocol })
         }
 
         const objectId = new ObjectId(req.query.id)
         const nftUpdateValues = {
-            $set: req.body
+            $set: objectToDotNotationService(req.body)
         }
         const nftUpdated = await db.collection('nft_form').findOneAndUpdate(
             { _id: objectId },
