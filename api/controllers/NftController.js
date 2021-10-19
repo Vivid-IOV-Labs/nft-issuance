@@ -494,12 +494,20 @@ module.exports = {
             'domain_protocol',
         ]
 
+        if (req.body.details === undefined) {
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.message = `Wrong body parameters. Parameters allowed: {details: {}}`
+            
+            return _requestRes(res_obj, res)
+        }
+
         const isAcceptedReqBodyParams = Object.keys(req.body.details).every(param => allowedToBeChanged.includes(param))
         if (!isAcceptedReqBodyParams) {
             res_obj.success = false
             res_obj.badRequest = true
-            res_obj.message = `Wrong body parameters. These parameters are allowed: ${allowedToBeChanged}`
-
+            res_obj.message = `Wrong body parameters. Parameters allowed: {details: {${allowedToBeChanged}}}`
+            
             return _requestRes(res_obj, res)
         }
 
