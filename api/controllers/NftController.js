@@ -488,7 +488,6 @@ module.exports = {
             'subtitle',
             'description',
             'tags',
-            'media_url',
             'categories',
             'brand_name',
             'transferable_copyright',
