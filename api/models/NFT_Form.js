@@ -61,7 +61,7 @@ module.exports = {
 
     wallet: {
       model: 'Wallet',
-      unique: true
+      // unique: true
     },
 
     organization: {
