@@ -112,7 +112,7 @@ module.exports = {
         };
 
         const nft = await sails.models.nft_form.findOne({ "id": req.body.id })
-        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active:true })
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
 
         const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, currency });
@@ -179,7 +179,7 @@ module.exports = {
             return res.badRequest(res_obj);
         }
 
-        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftForm.id, active:true })
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftForm.id, active: true })
         const { currency } = nftCurrency
 
         const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, currency }, { X_BRAND_WALLET_ADDRESS })
@@ -280,7 +280,7 @@ module.exports = {
         }
 
         //Prepare transaction payload for xumm users to sign and listen.
-        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active:true })
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
         
         const txTrustSet = await NFTService.txTrustSet({ currency })

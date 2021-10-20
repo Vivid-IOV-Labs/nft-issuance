@@ -19,7 +19,8 @@ module.exports = {
         if (verify.signedBy === receiver && verify.signatureValid) {    
             res_obj.success = true
             res_obj.message = "NFT claim has been verified"
-            
+            sails.log.debug(`NFT has been verified. nftId: ${nftId}`)
+
             return res_obj
         }
 
