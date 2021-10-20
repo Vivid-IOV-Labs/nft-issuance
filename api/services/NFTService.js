@@ -1,4 +1,5 @@
 require('dotenv').config();
+let ObjectId = require('mongodb').ObjectId;
 
 //Generate Wallets
 const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
@@ -239,7 +240,7 @@ const sendNFTokenToUser = async (_o) => {
     txList[6].Destination = _o.X_USER_WALLET_ADDRESS;
     txList[6].Fee = txInfo.feeValue;
     txList[6].Amount.currency = _o.currency;
-    
+
     const txObj = await _signTx({ tx: txList[6], xaccount: xaccount });
 
     const xresp = await _sendTx({ command: 'submit', "tx_blob": txObj.signedTransaction });
@@ -252,7 +253,7 @@ const accountSet = async (_o) => {
     //Account setup
     const DOMAIN = `${_o.domain_protocol}://`;
     const NFTDOMAIN = _textToHex({ text: DOMAIN });
-    
+
     const txInfo = await _getAccountInfoAndFee(_o.X_ISSUER_WALLET_ADDRESS);
     const xaccount = await _getXAccount(_o.X_ISSUER_SEED);
 
@@ -334,10 +335,10 @@ module.exports = {
     textToHex: async (_o) => {
         return _textToHex(_o)
     },
-    
-    generateCurrencyCode: async(_o) => {
+
+    generateCurrencyCode: async (_o) => {
         let domainValue = _o.tokenName.padEnd(20, ' ');
-    
+
         // let currency = '02' + _textToHex({ text: domainValue });
         let currency = _textToHex({ text: domainValue });
 
@@ -346,20 +347,20 @@ module.exports = {
 
     deactivateCurrency: async (_o) => {
         // Set active=false in NFT_Currency table
-    
+
         var db = sails.getDatastore().manager;
         const objectId = new ObjectId(_o.nftId)
-    
+
         const nftCurrencyUpdateRecord = {
             $set: {
                 "active": false
             }
         }
-    
+
         var nftCurrencyUpdated = await db.collection('nft_currency').findOneAndUpdate(
             { nft: objectId, active: true }, nftCurrencyUpdateRecord, { returnOriginal: false }
         );
-    
+
         if (!nftCurrencyUpdated.lastErrorObject.updatedExisting) {
             sails.log.error(`Could not deactivate nftCurrency. nftId: ${_o.nftId}`);
         }

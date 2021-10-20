@@ -27,10 +27,23 @@ module.exports = {
         }
 
         let nft = await sails.models.nft_form.findOne({ "id": nftId })
-        const { currency } = nft.details
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftId, active: true })
+        const { currency } = nftCurrency
 
-        const delivered = await NFTService.deliver({ X_BRAND_WALLET_ADDRESS, X_BRAND_SEED, 
-            X_USER_WALLET_ADDRESS: userWallet, currency });
+        const delivered = await NFTService.deliver({
+            X_BRAND_WALLET_ADDRESS,
+            X_BRAND_SEED,
+            X_USER_WALLET_ADDRESS: userWallet,
+            currency
+        });
+
+        if (delivered.engine_result !== "tesSUCCESS" || delivered.accepted !== true) {
+            res_obj.success = false;
+            res_obj.message = "NFT not delivered";
+            sails.log.error(res_obj.message)
+
+            return res_obj;
+        }
 
         const updateNftStatusResponse = await NFTFormService.updateStatus('delivered', nftId)
         if (!updateNftStatusResponse.success) {
@@ -53,16 +66,10 @@ module.exports = {
             .populate('xrpl_tx', xrplTransactionsAssociationOptions)
             .populate('xumm', xummAssociationOptions);
 
-        if (delivered.engine_result !== "tesSUCCESS" || delivered.accepted !== true) {
-            res_obj.success = false;
-            res_obj.message = "NFT not delivered";
-
-            return res_obj;
-        }
-
         sails.sockets.blast('delivered', {
             nftId: nftId
         })
+        sails.log.debug(`NFT has been delivered. nftId: ${nftId}`)
 
         res_obj.success = true
         res_obj.message = "NFT delivered successfully."
