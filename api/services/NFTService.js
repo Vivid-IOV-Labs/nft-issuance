@@ -342,5 +342,26 @@ module.exports = {
         let currency = _textToHex({ text: domainValue });
 
         return currency
+    },
+
+    deactivateCurrency: async (_o) => {
+        // Set active=false in NFT_Currency table
+    
+        var db = sails.getDatastore().manager;
+        const objectId = new ObjectId(_o.nftId)
+    
+        const nftCurrencyUpdateRecord = {
+            $set: {
+                "active": false
+            }
+        }
+    
+        var nftCurrencyUpdated = await db.collection('nft_currency').findOneAndUpdate(
+            { nft: objectId, active: true }, nftCurrencyUpdateRecord, { returnOriginal: false }
+        );
+    
+        if (!nftCurrencyUpdated.lastErrorObject.updatedExisting) {
+            sails.log.error(`Could not deactivate nftCurrency. nftId: ${_o.nftId}`);
+        }
     }
 }
