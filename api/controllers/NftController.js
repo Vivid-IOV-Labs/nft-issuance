@@ -446,7 +446,7 @@ module.exports = {
 
         if (req.query.id) NFTOptions.where.id = req.query.id
         if (req.query.status) NFTOptions.where.current_status = JSON.parse(req.query.status)
-        NFTOptions.where.locked = req.query.locked || false
+        if (req.query.locked) NFTOptions.where.locked = req.query.locked
 
         allNFT = await sails.models.nft_form.find()
             .where(NFTOptions.where)
