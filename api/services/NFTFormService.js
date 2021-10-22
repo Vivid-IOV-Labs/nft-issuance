@@ -62,6 +62,6 @@ module.exports = {
             return res_obj;
         }
 
-        module.exports.updateStatus(nft.previous_status, nftId)
+        return module.exports.updateStatus(nft.previous_status, nftId)
      }
 }

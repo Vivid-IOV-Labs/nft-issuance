@@ -477,12 +477,12 @@ module.exports = {
             data: {}
         };
 
-        nft = await sails.models.nft_form.findOne({ id: req.query.id })
+        let nft = await sails.models.nft_form.findOne({ id: req.query.id })
         if (!((nft.current_status === 'created') || (nft.current_status === 'rejected' && nft.previous_status === 'created'))) {
             res_obj.success = false
             res_obj.badRequest = true
-            res_obj.message = `Could not update NFT. Can only update NFT (if current_status === 'created') OR ` +
-                `(if current_status === 'rejected' AND previous_status === 'created'). id: ${req.query.id}`
+            res_obj.message = `Could not update NFT. Can only update NFT (if current_status == 'created') OR ` +
+                `(if current_status == 'rejected' AND previous_status == 'created'). id: ${req.query.id}`
             res_obj.data = { nft }
 
             return _requestRes(res_obj, res)
@@ -569,10 +569,15 @@ module.exports = {
 
             return _requestRes(res_obj, res)
         }
+        
+        nft = nftUpdated.value
+        if (nft.current_status === 'rejected') {
+            nft = await NFTFormService.revertStatus(req.query.id)
+        }
 
         res_obj.success = true
         res_obj.message = `NFT updated successfully. id: ${req.query.id}`
-        res_obj.data = { nft: nftUpdated.value }
+        res_obj.data = { nft }
 
         return _requestRes(res_obj, res)
     },
