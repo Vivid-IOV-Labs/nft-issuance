@@ -5,7 +5,7 @@ module.exports = {
         /* 
             Update current_status and previous_status in NFT_Form table
         */
-       
+
         var db = sails.getDatastore().manager;
 
         let res_obj = {
@@ -43,7 +43,7 @@ module.exports = {
 
         return res_obj
     },
-    
+
     revertStatus: async (nftId) => {
         /* 
             Revert current_status to previous_status in NFT_Form table
@@ -63,5 +63,5 @@ module.exports = {
         }
 
         return module.exports.updateStatus(nft.previous_status, nftId)
-     }
+    }
 }

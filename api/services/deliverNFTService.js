@@ -66,17 +66,15 @@ module.exports = {
             .populate('xrpl_tx', xrplTransactionsAssociationOptions)
             .populate('xumm', xummAssociationOptions)
             // Deep/nested populate for status - NFT_Form_Status
-            .then(async allNft => {
-                allNft.map(async nftRecord => {
-                    await Promise.all(nftRecord.status.map(async statusRecord => {
-                        let statusOptionsId = statusRecord.status
-                        let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                        let statusName = nftStatusOptions.name
-                        statusRecord.status = statusName
-                        return statusRecord
-                    }))
-                })
-                return allNft
+            .then(async nft => {
+                await Promise.all(nft.status.map(async statusRecord => {
+                    let statusOptionsId = statusRecord.status
+                    let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
+                    let statusName = nftStatusOptions.name
+                    statusRecord.status = statusName
+                    return statusRecord
+                }))
+                return nft
             })
 
         sails.sockets.blast('delivered', {
