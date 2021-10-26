@@ -94,16 +94,7 @@ module.exports = {
                 .populate('status', statusAssociationOptions)
                 .populate('xrpl_tx', xrplTransactionsAssociationOptions)
                 // Deep/nested populate for status - NFT_Form_Status
-                .then(async nft => {
-                    await Promise.all(nft.status.map(async statusRecord => {
-                        let statusOptionsId = statusRecord.status
-                        let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                        let statusName = nftStatusOptions.name
-                        statusRecord.status = statusName
-                        return statusRecord
-                    }))
-                    return nft
-                })
+                .then(generalService.populateNFTFormStatus())
 
             res_obj.success = true
             res_obj.message = "NFT created successfully"
@@ -137,7 +128,6 @@ module.exports = {
                 return res.badRequest(res_obj);
             }
             const nft_form_status = updateNftStatusResponse.nft_form_status
-            const nft = updateNftStatusResponse.nft
 
             const xrpl_tx = await sails.models.xrpl_transactions.create({ "nft": nft.id, "nft_status": nft_form_status.id, "tx_details": approved }).fetch();
 
@@ -156,16 +146,7 @@ module.exports = {
                 .populate('status', statusAssociationOptions)
                 .populate('xrpl_tx', xrplTransactionsAssociationOptions)
                 // Deep/nested populate for status - NFT_Form_Status
-                .then(async nft => {
-                    await Promise.all(nft.status.map(async statusRecord => {
-                        let statusOptionsId = statusRecord.status
-                        let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                        let statusName = nftStatusOptions.name
-                        statusRecord.status = statusName
-                        return statusRecord
-                    }))
-                    return nft
-                })
+                .then(generalService.populateNFTFormStatus())
 
             res_obj.success = true
             res_obj.message = "NFT approved successfully"
@@ -193,15 +174,15 @@ module.exports = {
             data: {}
         };
 
-        const nftForm = await NFT_Form.findOne({ id: req.body.id })
-        if (nftForm.current_status !== 'approved') {
+        const nft = await NFT_Form.findOne({ id: req.body.id })
+        if (nft.current_status !== 'approved') {
             res_obj.success = false;
             res_obj.message = "NFT has not been approved";
 
             return res.badRequest(res_obj);
         }
 
-        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftForm.id, active: true })
+        const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
 
         const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, currency }, { X_BRAND_WALLET_ADDRESS })
@@ -220,7 +201,6 @@ module.exports = {
                     return res.badRequest(res_obj);
                 }
                 const nft_form_status = updateNftStatusResponse.nft_form_status
-                const nft = updateNftStatusResponse.nft
 
                 //As the XRPL transactions are an array, we should loop through each transaction result to record in the database.
                 if (Array.isArray(issued)) {
@@ -254,17 +234,8 @@ module.exports = {
                         .populate('status', statusAssociationOptions)
                         .populate('xrpl_tx', xrplTransactionsAssociationOptions)
                         // Deep/nested populate for status - NFT_Form_Status
-                        .then(async nft => {
-                            await Promise.all(nft.status.map(async statusRecord => {
-                                let statusOptionsId = statusRecord.status
-                                let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                                let statusName = nftStatusOptions.name
-                                statusRecord.status = statusName
-                                return statusRecord
-                            }))
-                            return nft
-                        })
-        
+                        .then(generalService.populateNFTFormStatus())
+
                     res_obj.success = true
                     res_obj.message = "NFT issued successfully"
                     res_obj.data = { nft: nftPopulated }
@@ -348,16 +319,7 @@ module.exports = {
             .populate('status', statusAssociationOptions)
             .populate('xumm', xummAssociationOptions)
             // Deep/nested populate for status - NFT_Form_Status
-            .then(async nft => {
-                await Promise.all(nft.status.map(async statusRecord => {
-                    let statusOptionsId = statusRecord.status
-                    let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                    let statusName = nftStatusOptions.name
-                    statusRecord.status = statusName
-                    return statusRecord
-                }))
-                return nft
-            })
+            .then(generalService.populateNFTFormStatus())
 
         res_obj.success = true
         res_obj.message = "NFT claim payload generated successfully."
@@ -435,16 +397,7 @@ module.exports = {
             .populate('xumm_response', associationOptions)
             .meta({ enableExperimentalDeepTargets: true })
             // Deep/nested populate for status - NFT_Form_Status
-            .then(async nft => {
-                await Promise.all(nft.status.map(async statusRecord => {
-                    let statusOptionsId = statusRecord.status
-                    let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                    let statusName = nftStatusOptions.name
-                    statusRecord.status = statusName
-                    return statusRecord
-                }))
-                return nft
-            })
+            .then(generalService.populateNFTFormStatus())
 
         if (nft.locked) {
             res_obj.success = false
@@ -514,18 +467,7 @@ module.exports = {
             .limit(pageSize)
             .meta({ enableExperimentalDeepTargets: true })
             // Deep/nested populate for status - NFT_Form_Status
-            .then(async allNft => {
-                allNft.map(async nftRecord => {
-                    await Promise.all(nftRecord.status.map(async statusRecord => {
-                        let statusOptionsId = statusRecord.status
-                        let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                        let statusName = nftStatusOptions.name
-                        statusRecord.status = statusName
-                        return statusRecord
-                    }))
-                })
-                return allNft
-            })
+            .then(generalService.populateNFTFormStatus())
 
         totalNFT = await sails.models.nft_form.count()
             .where(NFTOptions.where)
@@ -623,7 +565,7 @@ module.exports = {
 
         const objectId = new ObjectId(req.query.id)
         const nftUpdateValues = {
-            $set: objectToDotNotationService(req.body)
+            $set: generalService.objectToDotNotation(req.body)
         }
         const nftUpdated = await db.collection('nft_form').findOneAndUpdate(
             { _id: objectId },
@@ -680,19 +622,7 @@ module.exports = {
             .populate('xumm_response', associationOptions)
             .meta({ enableExperimentalDeepTargets: true })
             // Deep/nested populate for status - NFT_Form_Status
-            .then(async allNft => {
-                allNft.map(async nftRecord => {
-                    await Promise.all(nftRecord.status.map(async statusRecord => {
-                        let statusOptionsId = statusRecord.status
-                        let nftStatusOptions = await sails.models.nft_status_options.findOne(statusOptionsId)
-                        let statusName = nftStatusOptions.name
-                        statusRecord.status = statusName
-                        return statusRecord
-                    }))
-                })
-                return allNft
-            })
-
+            .then(generalService.populateNFTFormStatus())
 
         await sails.models.nft_form.archive({ id: ids })
         await sails.models.nft_form_status.archive({ nft: ids })

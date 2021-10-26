@@ -37,7 +37,10 @@ module.exports = {
             },
             { returnOriginal: false }
         );
-
+        
+        nftUpdated.value.id = nftUpdated.value._id
+        delete nftUpdated.value._id
+        
         res_obj.nft_form_status = await sails.models.nft_form_status.create({ "status_success": true, "nft": nft.id, "status": nft_status_options.id }).fetch();
         res_obj.nft = nftUpdated.value
 
