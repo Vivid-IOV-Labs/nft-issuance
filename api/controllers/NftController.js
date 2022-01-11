@@ -98,7 +98,7 @@ module.exports = {
 
             res_obj.success = true
             res_obj.message = "NFT created successfully"
-            res_obj.data = { nft: nftPopulated }
+            res_obj.data = { nft: nftPopulated[0] }
         }
 
         return _requestRes(res_obj, res)
@@ -150,7 +150,7 @@ module.exports = {
 
             res_obj.success = true
             res_obj.message = "NFT approved successfully"
-            res_obj.data = { nft: nftPopulated }
+            res_obj.data = { nft: nftPopulated[0] }
 
         } else {
 
@@ -238,7 +238,7 @@ module.exports = {
 
                     res_obj.success = true
                     res_obj.message = "NFT issued successfully"
-                    res_obj.data = { nft: nftPopulated }
+                    res_obj.data = { nft: nftPopulated[0] }
 
                     return res.ok(res_obj)
                 }
@@ -323,7 +323,7 @@ module.exports = {
 
         res_obj.success = true
         res_obj.message = "NFT claim payload generated successfully."
-        res_obj.data = { nft: nftPopulated }
+        res_obj.data = { nft: nftPopulated[0] }
 
         return _requestRes(res_obj, res)
     },
@@ -409,7 +409,7 @@ module.exports = {
 
         res_obj.success = true
         res_obj.message = `NFT fetched. id: ${id}`
-        res_obj.data = { nft }
+        res_obj.data = { nft:nft[0] }
 
         return _requestRes(res_obj, res)
 
@@ -585,6 +585,7 @@ module.exports = {
             nft = await NFTFormService.revertStatus(req.query.id)
         }
 
+
         res_obj.success = true
         res_obj.message = `NFT updated successfully. id: ${req.query.id}`
         res_obj.data = { nft }
@@ -631,9 +632,10 @@ module.exports = {
         await sails.models.xumm_responses.archive({ nft: ids })
         await sails.models.nft_claim_verification.archive({ nft: ids })
 
+
         res_obj.success = true
         res_obj.message = "All NFT has been deleted."
-        res_obj.data = { nft: allNFT }
+        res_obj.data = { nft: allNFT[0] }
 
         return _requestRes(res_obj, res)
     }
