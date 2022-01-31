@@ -66,9 +66,7 @@ module.exports = {
 };
 
 _lockNft = async (nftId) => {
-    /*
-        Set locked=true in NFT_Form table
-    */
+    // Set locked=true in NFT_Form table
 
     var db = sails.getDatastore().manager;
     const objectId = new ObjectId(nftId)

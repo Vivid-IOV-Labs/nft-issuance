@@ -339,7 +339,6 @@ module.exports = {
     generateCurrencyCode: async (_o) => {
         let domainValue = _o.tokenName.padEnd(20, ' ');
 
-        // let currency = '02' + _textToHex({ text: domainValue });
         let currency = _textToHex({ text: domainValue });
 
         return currency

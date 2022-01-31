@@ -1,10 +1,4 @@
 require('dotenv').config();
-var ObjectId = require('mongodb').ObjectId;
-const { XummSdk } = require('xumm-sdk');
-const Sdk = new XummSdk(
-    process.env.XUMM_API_KEY.toString(),
-    process.env.XUMM_API_SECRET.toString()
-);
 
 const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
 const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();

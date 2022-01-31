@@ -38,9 +38,6 @@ const txIsSuccess = (v) => v.engine_result === "tesSUCCESS";
 const txIsAccepted = (v) => v.accepted === true;
 const hasDbID = (v) => typeof v.id != "undefined";
 
-const { XummSdk } = require('xumm-sdk');
-const Sdk = new XummSdk((process.env.XUMM_API_KEY).toString(), (process.env.XUMM_API_SECRET).toString())
-
 
 module.exports = {
 
@@ -263,8 +260,7 @@ module.exports = {
             message: "",
             data: {}
         };
-
-        //This is supposed to be done by the public users in the Xumm App.        
+  
 
         const nft = await sails.models.nft_form.findOne({ "id": req.body.id });
         if (nft.locked) {
