@@ -35,24 +35,24 @@ POST /nft
         }```
 
 
-POST nft/approve
+POST /nft/approve
     Body
         ```{
-            "id": String *(Local Database ID)*
+            "id": String //(Local Database ID)
         }```
 
 
-POST nft/issue
+POST /nft/issue
     Body
         ```{
-            "id": String *(Local Database ID)*
+            "id": String //(Local Database ID)
         }```
 
 
-POST nft/claim
+POST /nft/claim
     Body
         ```{
-            "id": String *(Local Database ID)*
+            "id": String //(Local Database ID)
         }```
 
 
