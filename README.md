@@ -1,4 +1,4 @@
-# NFToken Issue Service Demo
+# XRPL NFT Issue Service
 
 
 ### Description
@@ -29,6 +29,7 @@ Use command "npm run start:dev" when working with this application locally.
 POST /nft
 
     Body
+
         ```{
             "token_name": String,
             "title": String,
@@ -39,6 +40,7 @@ POST /nft
 POST /nft/approve
 
     Body
+
         ```{
             "id": String //(Local Database ID)
         }```
@@ -47,6 +49,7 @@ POST /nft/approve
 POST /nft/issue
 
     Body
+
         ```{
             "id": String //(Local Database ID)
         }```
@@ -55,6 +58,7 @@ POST /nft/issue
 POST /nft/claim
 
     Body
+    
         ```{
             "id": String //(Local Database ID)
         }```
