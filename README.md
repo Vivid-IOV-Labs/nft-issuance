@@ -3,7 +3,7 @@
 
 ### Description
 
-Issue Non-Fungible Tokens (NFT) on the XRPL as proposed by the [XLS-14d](https://github.com/XRPLF/XRPL-Standards/discussions/30) standard. Distribute the issued NFTs via the [Xumm] (https://xumm.readme.io/docs/introduction) Platform. 
+Issue Non-Fungible Tokens (NFT) on the XRPL as proposed by the [XLS-14d](https://github.com/XRPLF/XRPL-Standards/discussions/30) standard. Distribute the issued NFTs via the [Xumm](https://xumm.readme.io/docs/introduction) Platform. 
 
 
 ### Setup
@@ -27,6 +27,7 @@ Use command "npm run start:dev" when working with this application locally.
 ### Main Routes (Example)
 
 POST /nft
+
     Body
         ```{
             "token_name": String,
@@ -36,6 +37,7 @@ POST /nft
 
 
 POST /nft/approve
+
     Body
         ```{
             "id": String //(Local Database ID)
@@ -43,6 +45,7 @@ POST /nft/approve
 
 
 POST /nft/issue
+
     Body
         ```{
             "id": String //(Local Database ID)
@@ -50,6 +53,7 @@ POST /nft/issue
 
 
 POST /nft/claim
+
     Body
         ```{
             "id": String //(Local Database ID)
@@ -66,8 +70,3 @@ Monitor updates via XRPL Testnet Block Explorer [Bithomp](https://test.bithomp.c
 + [Sails framework documentation](https://sailsjs.com/get-started)
 + [Version notes / upgrading](https://sailsjs.com/documentation/upgrading)
 + [Community support options](https://sailsjs.com/support)
-
-
-### Version info
-
-A [Sails v1](https://sailsjs.com) application. This app was originally generated on Tue Jun 08 2021 05:30:33 GMT+0100 (British Summer Time) using Sails v1.2.4.
