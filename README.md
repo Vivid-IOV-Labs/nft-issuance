@@ -1,4 +1,4 @@
-# XRPL NFT Issue Service
+# XRPL NFT Issuance Service
 
 
 ### Description
@@ -13,55 +13,51 @@ Create a ".env" file similar to the one shown by the file called ".env.example".
 
 ### Usage
 
-It is recommended to use this web service in conjunction with the accompanying frontend, which can be located here :- [peerkat-nft-frontend](https://github.com/Vivid-IOV-Labs/peerkat-nft-frontend).
+It is recommended to use this web service in conjunction with the accompanying frontend, which can be located here : [peerkat-nft-frontend](https://github.com/Vivid-IOV-Labs/peerkat-nft-frontend).
 
-At present a User would need to regenerate XRPL wallet credentials and add them to the ".env" file when creating new NFTs. We plan to add improvements this repository via updates and create supporting documentation.
+At present a User would need to regenerate XRPL wallet credentials and add them to the ".env" file when creating new NFTs. This project is still on-going and we plan to add improvements to this repository.
 
-It is recommended to run a local MongoDB database when using this application locally. Information on how to install MongoDB can be found here :- [Install MongoDB](https://docs.mongodb.com/guides/server/install/).
+It is recommended to run a local MongoDB database when using this application locally. Information on how to install MongoDB can be found here : [Install MongoDB](https://docs.mongodb.com/guides/server/install/).
 
-It is also recommended to add "Xumm xApp" API credentials to the ".env" file, when using this application. More information about "Xumm" and "xApp" can be found here :- [What are xApps](https://xumm.readme.io/docs/what-are-xapps).
+It is also recommended to add "Xumm xApp" API credentials to the ".env" file, when using this application. More information about "Xumm xApp" can be found here : [What are xApps](https://xumm.readme.io/docs/what-are-xapps).
 
-Use command "npm run start:dev" when working with this application locally. 
+Use command ```npm run start:dev``` when working with this application locally. 
 
 
-### Main Routes (Example)
+### Main Route Examples
 
 POST /nft
 
     Body
-
-        ```{
+        {
             "token_name": String,
             "title": String,
             "domain_protocol": String
-        }```
+        }
 
 
 POST /nft/approve
 
     Body
-
-        ```{
+        {
             "id": String //(Local Database ID)
-        }```
+        }
 
 
 POST /nft/issue
 
     Body
-
-        ```{
+        {
             "id": String //(Local Database ID)
-        }```
+        }
 
 
 POST /nft/claim
 
     Body
-    
-        ```{
+        {
             "id": String //(Local Database ID)
-        }```
+        }
 
 
 ### Outcomes
