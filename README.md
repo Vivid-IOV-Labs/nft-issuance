@@ -8,7 +8,7 @@ Issue Non-Fungible Tokens (NFT) on the XRPL as proposed by the [XLS-14d](https:/
 
 ### Setup
 
-Create a ".env" file similar to the one shown by the file called ".env.example". Generate credentials for each wallet on the XRPL Testnet using the following link: [XRP Testnet Faucet](https://xrpl.org/xrp-testnet-faucet.html).
+Create a ".env" file similar to the one shown by the file called ".env.example". Generate credentials for each wallet on the **XRPL Testnet** using the following link: [XRP Testnet Faucet](https://xrpl.org/xrp-testnet-faucet.html).
 
 
 ### Usage
