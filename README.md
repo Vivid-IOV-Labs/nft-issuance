@@ -15,7 +15,7 @@ Create a ".env" file similar to the one shown by the file called ".env.example".
 
 It is recommended to use this web service in conjunction with the accompanying frontend, which can be located here : [nft-issuance](https://github.com/Vivid-IOV-Labs/nft-issuance-frontend).
 
-At present a User would need to regenerate XRPL wallet credentials and add them to the ".env" file when creating new NFTs. This project is still on-going and we plan to add improvements to this repository.
+Please note: At present a User would need to regenerate XRPL wallet credentials and add them to the ".env" file when creating new NFTs. This project is still on-going and we plan to add improvements to this repository.
 
 It is recommended to run a local MongoDB database when using this application locally. Information on how to install MongoDB can be found here : [Install MongoDB](https://docs.mongodb.com/guides/server/install/).
 
