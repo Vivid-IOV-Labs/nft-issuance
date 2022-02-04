@@ -578,7 +578,9 @@ module.exports = {
             let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
             let X_ISSUER_SEED = nft.wallet.privateSeed;
 
-            await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, reqDomainProtocol })
+            console.log("reqDomainProtocol",reqDomainProtocol)
+
+            await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol:reqDomainProtocol })
         }
 
         const objectId = new ObjectId(req.query.id)
