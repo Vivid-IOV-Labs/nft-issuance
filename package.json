@@ -17,6 +17,7 @@
     "sails-mongo": "1.2.0",
     "verify-xrpl-signature": "^0.3.0",
     "ws": "^8.2.2",
+    "xrpl": "^2.1.1",
     "xrpl-accountlib": "^1.1.4",
     "xrpl-client": "^1.5.0",
     "xumm-sdk": "^0.6.0"
