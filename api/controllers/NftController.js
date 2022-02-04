@@ -10,8 +10,8 @@ let ObjectId = require('mongodb').ObjectId;
 let db = sails.getDatastore().manager;
 
 // //Generate Wallets
-const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
-const X_ISSUER_SEED = (process.env.X_ISSUER_SEED).toString();
+// const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
+// const X_ISSUER_SEED = (process.env.X_ISSUER_SEED).toString();
 
 const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
 const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
@@ -58,6 +58,13 @@ module.exports = {
             return res.badRequest(res_obj);
         }
 
+
+        const wallet = await walletService.generate();
+        await walletService.fund(wallet.publicAddress);
+        
+        let X_ISSUER_WALLET_ADDRESS = wallet.publicAddress;
+        let X_ISSUER_SEED = wallet.privateSeed;
+
         const { domain_protocol } = req.body
 
         const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol })
@@ -67,7 +74,7 @@ module.exports = {
 
             const nft_status_options = await sails.models.nft_status_options.findOne({ name: "created" });
 
-            const nft = await sails.models.nft_form.create({ "details": details, "current_status": nft_status_options.name })
+            const nft = await sails.models.nft_form.create({ "details": details, "current_status": nft_status_options.name, "wallet": wallet.id })
                 .fetch();
 
             await sails.models.nft_currency.create({ currency, nft: nft.id });
@@ -109,12 +116,16 @@ module.exports = {
             message: "",
             data: {}
         };
+        
 
-        const nft = await sails.models.nft_form.findOne({ "id": req.body.id })
+        const nft = await sails.models.nft_form.findOne({ "id": req.body.id }).populate('wallet')
+
+        let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
+
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
 
-        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, currency });
+        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, currency, X_ISSUER_WALLET_ADDRESS });
 
         if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
             const updateNftStatusResponse = await NFTFormService.updateStatus('approved', req.body.id)
@@ -171,13 +182,18 @@ module.exports = {
             data: {}
         };
 
-        const nft = await NFT_Form.findOne({ id: req.body.id })
+        const nft = await NFT_Form.findOne({ id: req.body.id }).populate('wallet')
         if (nft.current_status !== 'approved') {
             res_obj.success = false;
             res_obj.message = "NFT has not been approved";
 
             return res.badRequest(res_obj);
         }
+
+        //check if nft.wallet exists
+
+        let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
+        let X_ISSUER_SEED = nft.wallet.privateSeed;
 
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
@@ -262,7 +278,7 @@ module.exports = {
         };
   
 
-        const nft = await sails.models.nft_form.findOne({ "id": req.body.id });
+        const nft = await sails.models.nft_form.findOne({ "id": req.body.id }).populate('wallet');
         if (nft.locked) {
             let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
             sails.log.info(message)
@@ -279,11 +295,13 @@ module.exports = {
             return res.badRequest(res_obj);
         }
 
+        let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
+
         //Prepare transaction payload for xumm users to sign and listen.
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
 
-        const txTrustSet = await NFTService.txTrustSet({ currency })
+        const txTrustSet = await NFTService.txTrustSet({ currency, X_ISSUER_WALLET_ADDRESS})
         const claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
 
         const newXummRecord = {
@@ -483,7 +501,7 @@ module.exports = {
             data: {}
         };
 
-        let nft = await sails.models.nft_form.findOne({ id: req.query.id })
+        let nft = await sails.models.nft_form.findOne({ id: req.query.id }).populate('wallet')
         if (!((nft.current_status === 'created') || (nft.current_status === 'rejected' && nft.previous_status === 'created'))) {
             res_obj.success = false
             res_obj.badRequest = true
@@ -556,6 +574,10 @@ module.exports = {
 
                 return _requestRes(res_obj, res)
             }
+
+            let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
+            let X_ISSUER_SEED = nft.wallet.privateSeed;
+
             await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, reqDomainProtocol })
         }
 

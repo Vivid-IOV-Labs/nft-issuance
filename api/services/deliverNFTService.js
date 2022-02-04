@@ -3,6 +3,8 @@ require('dotenv').config();
 const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
 const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
 
+// const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
+
 module.exports = {
     run: async (nftId, userWallet) => {
         let res_obj = {
@@ -20,7 +22,10 @@ module.exports = {
             xummAssociationOptions = { where: { id: xummResponses.id } }
         }
 
-        let nft = await sails.models.nft_form.findOne({ "id": nftId })
+        let nft = await sails.models.nft_form.findOne({ "id": nftId }).populate('wallet')
+
+        let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
+
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftId, active: true })
         const { currency } = nftCurrency
 
@@ -28,7 +33,8 @@ module.exports = {
             X_BRAND_WALLET_ADDRESS,
             X_BRAND_SEED,
             X_USER_WALLET_ADDRESS: userWallet,
-            currency
+            currency,
+            X_ISSUER_WALLET_ADDRESS
         });
 
         if (delivered.engine_result !== "tesSUCCESS" || delivered.accepted !== true) {
