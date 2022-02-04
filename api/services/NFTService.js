@@ -372,5 +372,8 @@ module.exports = {
         if (!nftCurrencyUpdated.lastErrorObject.updatedExisting) {
             sails.log.error(`Could not deactivate nftCurrency. nftId: ${_o.nftId}`);
         }
+    },
+    resetSeqCount: () =>{
+        seqCount = 0;
     }
 }

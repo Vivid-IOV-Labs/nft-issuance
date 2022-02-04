@@ -67,7 +67,19 @@ module.exports = {
 
         const { domain_protocol } = req.body
 
-        const created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol })
+        try {
+            var created = await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol })
+ 
+        } catch(e){
+           
+            res_obj.success = false
+            res_obj.error = true
+            res_obj.message = e.message
+
+            return _requestRes(res_obj, res)
+        }
+
+
         const currency = await NFTService.generateCurrencyCode({ tokenName: req.body.token_name })
 
         if (created.engine_result === "tesSUCCESS" && created.accepted === true) {
@@ -103,6 +115,18 @@ module.exports = {
             res_obj.success = true
             res_obj.message = "NFT created successfully"
             res_obj.data = { nft: nftPopulated[0] }
+        } else {
+   
+            if(created.engine_result_message){
+                res_obj.message = created.engine_result_message
+            }
+
+            res_obj.success = false
+            res_obj.error = true
+            res_obj.data = created
+            
+            return _requestRes(res_obj, res)
+
         }
 
         return _requestRes(res_obj, res)
@@ -125,7 +149,17 @@ module.exports = {
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
 
-        const approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, currency, X_ISSUER_WALLET_ADDRESS });
+        try {
+            var approved = await NFTService.approve({ X_BRAND_SEED, X_BRAND_WALLET_ADDRESS, currency, X_ISSUER_WALLET_ADDRESS });
+
+        } catch(e){
+            
+            res_obj.success = false
+            res_obj.error = true
+            res_obj.message = e.message
+
+            return _requestRes(res_obj, res)
+        }
 
         if (approved.engine_result === "tesSUCCESS" && approved.accepted === true) {
             const updateNftStatusResponse = await NFTFormService.updateStatus('approved', req.body.id)
@@ -190,15 +224,27 @@ module.exports = {
             return res.badRequest(res_obj);
         }
 
-        //check if nft.wallet exists
-
+        
         let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
         let X_ISSUER_SEED = nft.wallet.privateSeed;
 
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nft.id, active: true })
         const { currency } = nftCurrency
 
-        const issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, currency }, { X_BRAND_WALLET_ADDRESS })
+        try {
+            var issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, currency }, { X_BRAND_WALLET_ADDRESS })
+        } catch(e){
+
+            console.log("e",e)
+                
+            res_obj.success = false
+            res_obj.error = true
+            res_obj.message = e.message
+
+            NFTService.resetSeqCount()
+
+            return _requestRes(res_obj, res)
+        }
 
         //If the XRPL transactions where an array of transactions 
         if (Array.isArray(issued)) {
@@ -302,7 +348,17 @@ module.exports = {
         const { currency } = nftCurrency
 
         const txTrustSet = await NFTService.txTrustSet({ currency, X_ISSUER_WALLET_ADDRESS})
-        const claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
+        
+        try {
+            var claimCreatedDetails = await claimNFTService.listen(txTrustSet, req.body.id)
+        } catch(e){
+                
+            res_obj.success = false
+            res_obj.error = true
+            res_obj.message = e.message
+
+            return _requestRes(res_obj, res)
+        }
 
         const newXummRecord = {
             "nft": nft.id,
@@ -357,7 +413,16 @@ module.exports = {
 
         if (!verify.success) return _requestRes(verify.res_obj, res)
 
-        res_obj = await deliverNFTService.run(req.body.id, req.body.userWallet)
+        try {
+            res_obj = await deliverNFTService.run(req.body.id, req.body.userWallet)
+        } catch(e){
+                
+            res_obj.success = false
+            res_obj.error = true
+            res_obj.message = e.message
+
+            return _requestRes(res_obj, res)
+        }
 
         return _requestRes(res_obj, res)
     },
@@ -577,8 +642,6 @@ module.exports = {
 
             let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
             let X_ISSUER_SEED = nft.wallet.privateSeed;
-
-            console.log("reqDomainProtocol",reqDomainProtocol)
 
             await NFTService.create({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, domain_protocol:reqDomainProtocol })
         }

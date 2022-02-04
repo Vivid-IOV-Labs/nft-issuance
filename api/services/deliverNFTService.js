@@ -29,13 +29,19 @@ module.exports = {
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftId, active: true })
         const { currency } = nftCurrency
 
-        const delivered = await NFTService.deliver({
-            X_BRAND_WALLET_ADDRESS,
-            X_BRAND_SEED,
-            X_USER_WALLET_ADDRESS: userWallet,
-            currency,
-            X_ISSUER_WALLET_ADDRESS
-        });
+        try {
+            var delivered = await NFTService.deliver({
+                X_BRAND_WALLET_ADDRESS,
+                X_BRAND_SEED,
+                X_USER_WALLET_ADDRESS: userWallet,
+                currency,
+                X_ISSUER_WALLET_ADDRESS
+            });
+        } catch(e){    
+            throw e
+
+        }
+
 
         if (delivered.engine_result !== "tesSUCCESS" || delivered.accepted !== true) {
             res_obj.success = false;

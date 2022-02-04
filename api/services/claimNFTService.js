@@ -47,7 +47,16 @@ module.exports = {
                 const verify = await verifyNFTService.run(nftId, txBlob, receiver)
                 if (!verify.success) return
 
-                await deliverNFTService.run(nftId)
+                try {
+                    await deliverNFTService.run(nftId)
+                } catch(e){
+
+                    const payloadStatus = 'error'
+                    sails.sockets.blast(payloadStatus, {
+                        nftId: nftId,
+                        message:e.message
+                    })
+                }
                 xummResponsesNewRecord = await _addXummResponsesRecord(nftId, event.data, 'delivered')                
             }
             if (event.data.signed === false) {
