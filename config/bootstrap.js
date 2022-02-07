@@ -17,12 +17,10 @@ module.exports.bootstrap = function (cb) {
 
     const createRecords = require('./setup/createRecords');
     //const removeRecords = require('./setup/removeRecords');
-    require('dotenv').config();
-
-    if(process.env.NODE_ENV == "development"){
-      await createRecords.static();
-      //await removeRecords.nonStatic();
-    }
+   
+    await createRecords.static();
+    //await removeRecords.nonStatic();
+  
 
   });
 
