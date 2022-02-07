@@ -11,17 +11,15 @@ module.exports = {
         if (!isLocalDb()) return
 
         await NFT_Form.destroy({})
-        // await NFT_Claim_Verification.destroy({})
+        await NFT_Claim_Verification.destroy({})
         await NFT_Form_Status.destroy({})
         await NFT_Currency.destroy({})
         await Xrpl_Transactions.destroy({})
         await Xumm.destroy({})
         await Xumm_Responses.destroy({})
-        // await Collection.destroy({})
-        // await User.destroy({})
-        // await Email.destroy({})
         await Wallet.destroy({})
-        // await Role.destroy({})
+        await Archive.destroy({})
+
     }
 }
 

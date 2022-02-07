@@ -9,23 +9,19 @@ const generate = async () => {
         publicAddress: wallet.address,
         privateSeed: wallet.secret.familySeed
     }
-    //const walletRecord = await sails.models.wallet.create(walletAttributes).fetch().decrypt()
-    const walletRecord = await sails.models.wallet.create(walletAttributes).fetch()
+    const walletRecord = await sails.models.wallet.create(walletAttributes).fetch().decrypt()
 
     return walletRecord
 }
 
 const fund = async (publicAddress) => {
-    // const wallet = await sails.models.wallet.findOne({ publicAddress }).decrypt()
-    const wallet = await sails.models.wallet.findOne({ publicAddress })
-    
+    const wallet = await sails.models.wallet.findOne({ publicAddress }).decrypt()
+
     const tempWallet = xrpl.Wallet.fromSeed(wallet.privateSeed)
     const client = await xrplService.connect()
-    //const fundResult = await client.fundWallet(tempWallet)
     await client.fundWallet(tempWallet)
     client.disconnect()
 
-    //updateBalance(publicAddress, fundResult.balance)
 }
 
 module.exports = {

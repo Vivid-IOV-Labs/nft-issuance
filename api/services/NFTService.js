@@ -1,13 +1,6 @@
 require('dotenv').config();
 let ObjectId = require('mongodb').ObjectId;
 
-//Generate Wallets
-// const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
-// const X_ISSUER_SEED = (process.env.X_ISSUER_SEED).toString();
-
-// const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
-// const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
-
 let seqCount = 0;
 
 const _textToHex = (_o) => {

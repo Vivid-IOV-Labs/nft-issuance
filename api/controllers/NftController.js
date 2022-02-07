@@ -9,9 +9,6 @@ require('dotenv').config();
 let ObjectId = require('mongodb').ObjectId;
 let db = sails.getDatastore().manager;
 
-// //Generate Wallets
-// const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
-// const X_ISSUER_SEED = (process.env.X_ISSUER_SEED).toString();
 
 const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
 const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
@@ -196,7 +193,7 @@ module.exports = {
 
         } else {
 
-            
+
             if(approved.engine_result_message){
                 res_obj.message = approved.engine_result_message
             }
@@ -222,7 +219,7 @@ module.exports = {
             data: {}
         };
 
-        const nft = await NFT_Form.findOne({ id: req.body.id }).populate('wallet')
+        const nft = await NFT_Form.findOne({ id: req.body.id }).populate('wallet').decrypt()
         if (nft.current_status !== 'approved') {
             res_obj.success = false;
             res_obj.message = "NFT has not been approved";
@@ -340,7 +337,7 @@ module.exports = {
         };
   
 
-        const nft = await sails.models.nft_form.findOne({ "id": req.body.id }).populate('wallet');
+        const nft = await sails.models.nft_form.findOne({ "id": req.body.id }).populate('wallet').decrypt();
         if (nft.locked) {
             let message = `Could not claim NFT. NFT is locked. id: ${req.body.id}`
             sails.log.info(message)
@@ -582,7 +579,7 @@ module.exports = {
             data: {}
         };
 
-        let nft = await sails.models.nft_form.findOne({ id: req.query.id }).populate('wallet')
+        let nft = await sails.models.nft_form.findOne({ id: req.query.id }).populate('wallet').decrypt()
         if (!((nft.current_status === 'created') || (nft.current_status === 'rejected' && nft.previous_status === 'created'))) {
             res_obj.success = false
             res_obj.badRequest = true

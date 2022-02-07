@@ -6,6 +6,7 @@
  */
 
 module.exports = {
+  schema:true,
 
   attributes: {
 
@@ -17,13 +18,8 @@ module.exports = {
     },
     privateSeed: {
       type: "string",
-      //encrypt: true
+      encrypt: true
     },
-    balance: {
-      type: 'number',
-      defaultsTo: 0
-    },
-
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

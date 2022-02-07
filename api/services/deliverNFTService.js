@@ -3,7 +3,6 @@ require('dotenv').config();
 const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
 const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
 
-// const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
 
 module.exports = {
     run: async (nftId, userWallet) => {
