@@ -44,9 +44,17 @@ module.exports = {
 
 
         if (delivered.engine_result !== "tesSUCCESS" || delivered.accepted !== true) {
+            sails.log.error("NFT not delivered")
             res_obj.success = false;
-            res_obj.message = "NFT not delivered";
-            sails.log.error(res_obj.message)
+            res_obj.badRequest = true;
+            res_obj.data = delivered;
+        
+            if(delivered.engine_result_message){
+                res_obj.message = delivered.engine_result_message;
+                sails.log.error(delivered.engine_result_message);
+
+            }
+
 
             return res_obj;
         }
@@ -55,6 +63,7 @@ module.exports = {
         if (!updateNftStatusResponse.success) {
             res_obj.success = false;
             res_obj.message = "NFT does not exist";
+            sails.log.error("NFT does not exist");
 
             return res_obj;
         }

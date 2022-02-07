@@ -122,7 +122,7 @@ module.exports = {
             }
 
             res_obj.success = false
-            res_obj.error = true
+            res_obj.badRequest = true
             res_obj.data = created
             
             return _requestRes(res_obj, res)
@@ -196,10 +196,16 @@ module.exports = {
 
         } else {
 
-            res_obj.success = false;
-            res_obj.message = "Ripple Ledger 'TrustSet' transaction between 'Issuer' wallet and 'Brand' wallet failed";
+            
+            if(approved.engine_result_message){
+                res_obj.message = approved.engine_result_message
+            }
 
-            return res.badRequest(res_obj);
+            res_obj.success = false
+            res_obj.badRequest = true
+            res_obj.data = approved
+            
+            return _requestRes(res_obj, res)
 
 
         }
@@ -234,8 +240,6 @@ module.exports = {
         try {
             var issued = await NFTService.issue({ X_ISSUER_WALLET_ADDRESS, X_ISSUER_SEED, currency }, { X_BRAND_WALLET_ADDRESS })
         } catch(e){
-
-            console.log("e",e)
                 
             res_obj.success = false
             res_obj.error = true
@@ -304,10 +308,22 @@ module.exports = {
 
             } else {
 
-                res_obj.success = false;
-                res_obj.message = "Ripple Ledger 'Payment' transaction to send NFT from 'Issuer' wallet to 'Brand' wallet failed";
+                let message_array = [];
 
-                return res.badRequest(res_obj);
+                message_array = issued.map(xrplTxResponse => [xrplTxResponse.tx_json.TransactionType, xrplTxResponse.engine_result, xrplTxResponse.engine_result_message])
+
+                res_obj.message = ""
+
+                message_array.forEach((i)=>{
+                    res_obj.message = res_obj.message + `TransactionType:${i[0]} Code:${i[1]} Message:${i[2]} \n`
+
+                })
+
+                res_obj.success = false;
+                res_obj.badRequest = true;
+                res_obj.data = issued;
+
+                return _requestRes(res_obj, res);
 
             }
 
