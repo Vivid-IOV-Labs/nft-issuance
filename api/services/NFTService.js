@@ -305,7 +305,7 @@ module.exports = {
     },
 
     issue: async (_o, _p) => {
-        //Done by a peerkat admin worker
+        //Done by a admin worker
         const issueAndBlackholeResponse = await issueAndBlackhole(_o, _p)
 
         return issueAndBlackholeResponse;
@@ -320,7 +320,7 @@ module.exports = {
     },
 
     deliver: async (_o) => {
-        //Done by an peerkat admin user or done automatically 
+        //Done by an admin user or done automatically 
 
         const sendNFTokenToUserResponse = await sendNFTokenToUser(_o);
 

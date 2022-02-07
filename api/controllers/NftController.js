@@ -246,8 +246,7 @@ module.exports = {
 
             return _requestRes(res_obj, res)
         }
-
-        //If the XRPL transactions where an array of transactions 
+ 
         if (Array.isArray(issued)) {
             let isSuccess = issued.every(txIsSuccess);
             let isAccepted = issued.every(txIsAccepted);
