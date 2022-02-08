@@ -13,7 +13,7 @@ Create a ".env" file similar to the one shown by the file called ".env.example".
 
 ### Usage
 
-It is recommended to use this web service in conjunction with the accompanying frontend, which can be located here : [nft-issuance](https://github.com/Vivid-IOV-Labs/nft-issuance-frontend).
+It is recommended to use this web service in conjunction with the accompanying frontend, which can be located here : [nft-issuance-frontend](https://github.com/Vivid-IOV-Labs/nft-issuance-frontend).
 
 **_Please note_**: At present a User will need to regenerate XRPL wallet credentials and add them to the ".env" everytime you want to create a new NFT. This project is still on-going and we plan to add improvements to this repository.
 
