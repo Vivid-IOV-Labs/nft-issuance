@@ -8,7 +8,7 @@ const _textToHex = (_o) => {
 }
 
 
-const X_url = 'wss://s.altnet.rippletest.net:51233';
+const X_url = (process.env.XRPL_NETWORK).toString();
 
 const { XrplClient } = require('xrpl-client');
 
