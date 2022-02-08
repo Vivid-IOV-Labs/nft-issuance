@@ -1,13 +1,6 @@
 require('dotenv').config();
 let ObjectId = require('mongodb').ObjectId;
 
-//Generate Wallets
-const X_ISSUER_WALLET_ADDRESS = (process.env.X_ISSUER_WALLET_ADDRESS).toString();
-const X_ISSUER_SEED = (process.env.X_ISSUER_SEED).toString();
-
-const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
-const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
-
 let seqCount = 0;
 
 const _textToHex = (_o) => {
@@ -15,7 +8,7 @@ const _textToHex = (_o) => {
 }
 
 
-const X_url = 'wss://s.altnet.rippletest.net:51233';
+const X_url = (process.env.XRPL_NETWORK).toString();
 
 const { XrplClient } = require('xrpl-client');
 
@@ -26,7 +19,7 @@ const lib = require('xrpl-accountlib');
 
 let txList = [{
     "TransactionType": "AccountSet",
-    "Account": X_ISSUER_WALLET_ADDRESS,
+    "Account": "X_ISSUER_WALLET_ADDRESS",
     "SetFlag": 8,
     "Domain": "NFT_DOMAIN"
 }, {
@@ -35,27 +28,27 @@ let txList = [{
     "Flags": 131072,
     "LimitAmount": {
         "currency": "CURRENCY",
-        "issuer": X_ISSUER_WALLET_ADDRESS,
+        "issuer": "X_ISSUER_WALLET_ADDRESS",
         "value": "1000000000000000e-96"
     }
 },
 {
     "TransactionType": "Payment",
-    "Account": X_ISSUER_WALLET_ADDRESS,
+    "Account": "X_ISSUER_WALLET_ADDRESS",
     "Destination": "rReceivingHotWallet...",
     "Amount": {
         "currency": "CURRENCY",
-        "issuer": X_ISSUER_WALLET_ADDRESS,
+        "issuer": "X_ISSUER_WALLET_ADDRESS",
         "value": "1000000000000000e-96"
     }
 }, {
     "TransactionType": "SetRegularKey",
-    "Account": X_ISSUER_WALLET_ADDRESS,
+    "Account": "X_ISSUER_WALLET_ADDRESS",
     "Fee": "12",
     "RegularKey": "rrrrrrrrrrrrrrrrrrrrBZbvji"
 }, {
     "TransactionType": "AccountSet",
-    "Account": X_ISSUER_WALLET_ADDRESS,
+    "Account": "X_ISSUER_WALLET_ADDRESS",
     "Fee": "12",
     "SetFlag": 4
 }, {
@@ -64,7 +57,7 @@ let txList = [{
     "Flags": 131072,
     "LimitAmount": {
         "currency": "CURRENCY",
-        "issuer": X_ISSUER_WALLET_ADDRESS,
+        "issuer": "X_ISSUER_WALLET_ADDRESS",
         "value": "1000000000000000e-96"
     }
 }, {
@@ -73,7 +66,7 @@ let txList = [{
     "Destination": "rFriendToReceiveNFT...",
     "Amount": {
         "currency": "CURRENCY",
-        "issuer": X_ISSUER_WALLET_ADDRESS,
+        "issuer": "X_ISSUER_WALLET_ADDRESS",
         "value": "1000000000000000e-96"
     }
 }]
@@ -147,6 +140,7 @@ const createTrustReceiverAndIssuer = async (_o) => {
     txList[1].Fee = txInfo.feeValue;
     txList[1].Account = _o.X_BRAND_WALLET_ADDRESS;
     txList[1].LimitAmount.currency = _o.currency;
+    txList[1].LimitAmount.issuer = _o.X_ISSUER_WALLET_ADDRESS;
 
     const xaccount = await _getXAccount(_o.X_BRAND_SEED);
 
@@ -169,6 +163,8 @@ const issueNFToken = async (_o, _p) => {
     txList[2].Destination = _p.X_BRAND_WALLET_ADDRESS;
     txList[2].Fee = txInfo.feeValue;//fee;
     txList[2].Amount.currency = _o.currency;
+    txList[2].Amount.issuer = _o.X_ISSUER_WALLET_ADDRESS;
+    txList[2].Account = _o.X_ISSUER_WALLET_ADDRESS;
 
     const txObj = await _signTx({ tx: txList[2], xaccount: xaccount });
 
@@ -185,6 +181,7 @@ const blackholeSetRegKey = async (_o) => {
     const xaccount = await _getXAccount(_o.X_ISSUER_SEED);
 
     txList[3].Sequence = txInfo.accountInfo.account_data.Sequence;
+    txList[3].Account = _o.X_ISSUER_WALLET_ADDRESS;
 
     const txObj = await _signTx({ tx: txList[3], xaccount: xaccount });
 
@@ -201,6 +198,7 @@ const blackholeDisableMasterKey = async (_o) => {
     const xaccount = await _getXAccount(_o.X_ISSUER_SEED);
 
     txList[4].Sequence = txInfo.accountInfo.account_data.Sequence;
+    txList[4].Account = _o.X_ISSUER_WALLET_ADDRESS;
 
     const txObj = await _signTx({ tx: txList[4], xaccount: xaccount });
 
@@ -219,6 +217,7 @@ const createTrustUserAndIssuer = async (_o) => {
     txList[5].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[5].Account = _o.X_USER_WALLET_ADDRESS;
     txList[5].Fee = txInfo.feeValue;
+    txList[5].LimitAmount.issuer = _o.X_ISSUER_WALLET_ADDRESS;
 
     const txObj = await _signTx({ tx: txList[5], xaccount: xaccount });
 
@@ -240,6 +239,7 @@ const sendNFTokenToUser = async (_o) => {
     txList[6].Destination = _o.X_USER_WALLET_ADDRESS;
     txList[6].Fee = txInfo.feeValue;
     txList[6].Amount.currency = _o.currency;
+    txList[6].Amount.issuer = _o.X_ISSUER_WALLET_ADDRESS;
 
     const txObj = await _signTx({ tx: txList[6], xaccount: xaccount });
 
@@ -260,6 +260,7 @@ const accountSet = async (_o) => {
     txList[0].Sequence = txInfo.accountInfo.account_data.Sequence;
     txList[0].Fee = txInfo.feeValue;
     txList[0].Domain = NFTDOMAIN;
+    txList[0].Account = _o.X_ISSUER_WALLET_ADDRESS;
 
     const txObj = await _signTx({ tx: txList[0], xaccount: xaccount });
 
@@ -304,7 +305,7 @@ module.exports = {
     },
 
     issue: async (_o, _p) => {
-        //Done by a peerkat admin worker
+        //Done by a admin worker
         const issueAndBlackholeResponse = await issueAndBlackhole(_o, _p)
 
         return issueAndBlackholeResponse;
@@ -319,7 +320,7 @@ module.exports = {
     },
 
     deliver: async (_o) => {
-        //Done by an peerkat admin user or done automatically 
+        //Done by an admin user or done automatically 
 
         const sendNFTokenToUserResponse = await sendNFTokenToUser(_o);
 
@@ -328,6 +329,7 @@ module.exports = {
 
     txTrustSet: async (_o) => {
         txList[5].LimitAmount.currency = _o.currency;
+        txList[5].LimitAmount.issuer = _o.X_ISSUER_WALLET_ADDRESS;
 
         return txList[5]
     },
@@ -363,5 +365,8 @@ module.exports = {
         if (!nftCurrencyUpdated.lastErrorObject.updatedExisting) {
             sails.log.error(`Could not deactivate nftCurrency. nftId: ${_o.nftId}`);
         }
+    },
+    resetSeqCount: () =>{
+        seqCount = 0;
     }
 }

@@ -16,11 +16,11 @@ module.exports.bootstrap = function (cb) {
     // Post-lift startup code here
 
     const createRecords = require('./setup/createRecords');
-    require('dotenv').config();
-
-    if(process.env.NODE_ENV == "development"){
-      await createRecords.static();
-    }
+    //const removeRecords = require('./setup/removeRecords');
+   
+    await createRecords.static();
+    //await removeRecords.nonStatic();
+  
 
   });
 

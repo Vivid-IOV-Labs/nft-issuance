@@ -3,6 +3,7 @@ require('dotenv').config();
 const X_BRAND_WALLET_ADDRESS = (process.env.X_BRAND_WALLET_ADDRESS).toString();
 const X_BRAND_SEED = (process.env.X_BRAND_SEED).toString();
 
+
 module.exports = {
     run: async (nftId, userWallet) => {
         let res_obj = {
@@ -20,21 +21,39 @@ module.exports = {
             xummAssociationOptions = { where: { id: xummResponses.id } }
         }
 
-        let nft = await sails.models.nft_form.findOne({ "id": nftId })
+        let nft = await sails.models.nft_form.findOne({ "id": nftId }).populate('wallet')
+
+        let X_ISSUER_WALLET_ADDRESS = nft.wallet.publicAddress;
+
         const nftCurrency = await sails.models.nft_currency.findOne({ nft: nftId, active: true })
         const { currency } = nftCurrency
 
-        const delivered = await NFTService.deliver({
-            X_BRAND_WALLET_ADDRESS,
-            X_BRAND_SEED,
-            X_USER_WALLET_ADDRESS: userWallet,
-            currency
-        });
+        try {
+            var delivered = await NFTService.deliver({
+                X_BRAND_WALLET_ADDRESS,
+                X_BRAND_SEED,
+                X_USER_WALLET_ADDRESS: userWallet,
+                currency,
+                X_ISSUER_WALLET_ADDRESS
+            });
+        } catch(e){    
+            throw e
+
+        }
+
 
         if (delivered.engine_result !== "tesSUCCESS" || delivered.accepted !== true) {
+            sails.log.error("NFT not delivered")
             res_obj.success = false;
-            res_obj.message = "NFT not delivered";
-            sails.log.error(res_obj.message)
+            res_obj.badRequest = true;
+            res_obj.data = delivered;
+        
+            if(delivered.engine_result_message){
+                res_obj.message = delivered.engine_result_message;
+                sails.log.error(delivered.engine_result_message);
+
+            }
+
 
             return res_obj;
         }
@@ -43,6 +62,7 @@ module.exports = {
         if (!updateNftStatusResponse.success) {
             res_obj.success = false;
             res_obj.message = "NFT does not exist";
+            sails.log.error("NFT does not exist");
 
             return res_obj;
         }

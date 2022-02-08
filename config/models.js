@@ -9,6 +9,8 @@
  * http://sailsjs.org/#!/documentation/concepts/ORM
  */
 
+ require('dotenv').config();
+
 module.exports.models = {
 
   /***************************************************************************
@@ -30,12 +32,17 @@ module.exports.models = {
   // migrate: 'alter',
   migrate: 'safe',
 
+  schema:true,
+
   attributes: {
     id: { type: 'string', columnName: '_id' },
     createdAt: { type: 'number', autoCreatedAt: true },
     updatedAt: { type: 'number', autoUpdatedAt: true }
-  }
+  },
 
+  dataEncryptionKeys: {
+    default: process.env.DATA_ENCRYPTION_KEY
+  }
 
 
 };

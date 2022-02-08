@@ -1,8 +1,8 @@
 {
-  "name": "nftissuanceservice",
+  "name": "nft-issuance-service",
   "private": true,
-  "version": "0.0.0",
-  "description": "a Sails application",
+  "version": "0.2.0",
+  "description": "An xrpl nft issuance service application",
   "keywords": [],
   "dependencies": {
     "@sailshq/lodash": "^3.10.3",
@@ -17,6 +17,7 @@
     "sails-mongo": "1.2.0",
     "verify-xrpl-signature": "^0.3.0",
     "ws": "^8.2.2",
+    "xrpl": "^2.1.1",
     "xrpl-accountlib": "^1.1.4",
     "xrpl-client": "^1.5.0",
     "xumm-sdk": "^0.6.0"
@@ -35,9 +36,9 @@
   "main": "app.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/anonymous node/sails user/nftissuanceservice.git"
+    "url": "git@github.com:Vivid-IOV-Labs/nft-issuance.git"
   },
-  "author": "anonymous node/sails user",
+  "author": "",
   "license": "",
   "engines": {
     "node": "^12.19"
