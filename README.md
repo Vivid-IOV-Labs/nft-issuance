@@ -13,7 +13,7 @@ Create a ".env" file similar to the one shown by the file called ".env.example".
 
 ### Usage
 
-It is recommended to use this web service in conjunction with the accompanying frontend, which can be located here :- [nft-issuance-frontend](https://github.com/Vivid-IOV-Labs/nft-issuance-frontend).
+It is recommended to use this web service in conjunction with the accompanying frontend, which can be located here : [nft-issuance-frontend](https://github.com/Vivid-IOV-Labs/nft-issuance-frontend).
 
 It is recommended to run a local MongoDB database when using this application locally. Information on how to install MongoDB can be found here : [Install MongoDB](https://docs.mongodb.com/guides/server/install/). Alternatively the docker-compose.yml file could be used to run MongoDB locally.
 
@@ -63,7 +63,7 @@ POST /nft/claim
 Monitor updates via XRPL Testnet Block Explorer [Bithomp](https://test.bithomp.com).
 
 
-### Links
+### Framework
 
 + [Sails framework documentation](https://sailsjs.com/get-started)
 + [Version notes / upgrading](https://sailsjs.com/documentation/upgrading)
