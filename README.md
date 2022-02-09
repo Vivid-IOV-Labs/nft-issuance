@@ -68,3 +68,7 @@ Monitor updates via XRPL Testnet Block Explorer [Bithomp](https://test.bithomp.c
 + [Sails framework documentation](https://sailsjs.com/get-started)
 + [Version notes / upgrading](https://sailsjs.com/documentation/upgrading)
 + [Community support options](https://sailsjs.com/support)
+
+### Feedback
+
+For any feedback/queries please email [support@peerkat.io](mailto:support@peerkat.io)
